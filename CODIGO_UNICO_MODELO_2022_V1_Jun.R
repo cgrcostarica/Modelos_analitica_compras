@@ -1,28 +1,54 @@
-# INDICADORES ------------
-# Cargando las librerias 
-suppressMessages(suppressWarnings(library(data.table)))
-suppressMessages(suppressWarnings(library(RODBC)))
-suppressMessages(suppressWarnings(library(ggplot2)))
-suppressMessages(suppressWarnings(library(tidyverse)))
-suppressMessages(suppressWarnings(library(summarytools)))
-suppressMessages(suppressWarnings(library(GGally)))
-suppressMessages(suppressWarnings(library(DT)))
-suppressMessages(suppressWarnings(library(lubridate)))
-suppressMessages(suppressWarnings(library(venn)))
-suppressMessages(suppressWarnings(library(readxl)))
-suppressMessages(suppressWarnings(library(stringi)))
-suppressMessages(suppressWarnings(library(stringr)))
-suppressMessages(suppressWarnings(library(writexl)))
-suppressMessages(suppressWarnings(library(matrixStats)))
+#*********************************CODIGO DE ANALÍTICA DE DATOS PARA COMPRAS PÚBLICAS*******************************#
+#**************************************************ELABORADO POR LA CGR*****************************************#
 
-library(robustbase)
-library(rrcov)      # PCA robusto
-library(factoextra) # Visualizacion de PCA
-library(h2o)        # Entrenar autoencoders
-library(tidyverse)  # Preparacion de datos y gráficos
+#**************************************INICIO**************************# 
+#Instalacion de librerias
+
+install.packages("data.table")
+install.packages("RODBC")
+install.packages("ggplot2")
+install.packages("tidyverse")
+install.packages("summarytools")
+install.packages("GGally")
+install.packages("DT")
+install.packages("lubridate")
+install.packages("venn")
+install.packages("readxl")
+install.packages("stringi")
+install.packages("stringr")
+install.packages("writexl")
+install.packages("matrixStats")
+install.packages("robustbase")
+install.packages("rrcov")
+install.packages("factoextra")
+install.packages("h2o")
+install.packages("DDoutlier")
+install.packages("isotree")
+
+
+#Cargando las librerias 
+
+library(data.table)
+library(RODBC)
 library(ggplot2)
+library(tidyverse)
+library(summarytools)
+library(GGally)
+library(DT)
+library(lubridate)
+library(venn)
+library(readxl)
+library(stringi)
+library(stringr)
+library(writexl)
+library(matrixStats)
+library(robustbase)
+library(rrcov)
+library(factoextra)
+library(h2o)
 library(DDoutlier)
-library(isotree) #Se utiliza para la realización del modelo de árboles de aislamiento
+library(isotree)
+library(dplyr)
 
 options(scipen = 999)
 
