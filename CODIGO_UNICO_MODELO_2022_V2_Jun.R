@@ -194,7 +194,7 @@ Plazo.1[,.N, keyby = Desv.contultadj][order(-N)][,Porcentaje := (N/sum(N))*100][
 
 summary(Plazo.1$Desv.contultadj) 
 
-# 3.2. Grado de desviaci?n entre la fecha de adjudicaci?n y la formalizaci?n del primer contrato
+# 3.2. Grado de desviaci?n entre la fecha de adjudicaci?n y la formalizaci?n del primer contrato ##JOSE PABLO##
 
 #Cálculo del promedio de los días entre la fecha de adjudicación y la formalización del primer contrato por bien
 Promedio_contpriadj_16 <- Plazos[, .(Prom.contpriradj_16 = mean(difAdjContPri,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
@@ -243,7 +243,7 @@ Plazo.1[,.N, keyby = cantModif][order(-N)][,Porcentaje := (N/sum(N))*100][]
 
 ###************************** Indicador 4**************************###
 
-##### Diferencia entre adjudicación y primer contrato
+##### Diferencia entre adjudicación y primer contrato ##JOSE PABLO##
 Plazo.1[, difIniContPri := difIniAdj + difAdjContPri][]
 
 Promedio_Ini_ContPri_16 <- Plazo.1[, .(Prom.Ini_ContPri_16 = mean(difIniContPri,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
@@ -347,7 +347,7 @@ summary(Alcance$Raz.recibida.solicitada)
 
 ###************************** Indicador 3**************************###
 
-# 3. Codigo de producto recibido es igual a codigo de producto contratado.
+# 3. Codigo de producto recibido es igual a codigo de producto contratado. ##JOSE PABLO##
 Alcance[, Cod.Cont.Rec := ifelse(codigoProductoContratado_16 == codigoProductoRecibido_16,1,0)][]
 #View(Alcance)
 summary(Alcance$Cod.Cont.Rec)
@@ -364,7 +364,7 @@ Alcance.1[, Compras.unico := .N, by = .(anno, idInstitucion,codigoProductoAdjudi
 
 ###************************** Indicador 5**************************###
 
-# 5. Raz?n entre cantidad adjudicada y cantidad contratada
+# 5. Raz?n entre cantidad adjudicada y cantidad contratada ##JOSE PABLO##
 Alcance[, Raz.adjudicada.contratada := cantidadAdjudicada/cantidadContratada][]
 
 #Manejo de LOS VALORES INFINITOS EN LOS DATOS
@@ -378,7 +378,7 @@ summary(Alcance$Raz.adjudicada.contratada)
 
 ###************************** Indicador 6**************************###
 
-# 6. Raz?n entre cantidad solicitada y cantidad contratada
+# 6. Raz?n entre cantidad solicitada y cantidad contratada ##JOSE PABLO##
 Alcance[, Raz.solicitada.contratada := cantidadSolicitada/cantidadContratada][]
 
 #Manejo de LOS VALORES INFINITOS EN LOS DATOS
@@ -396,7 +396,7 @@ names(Alcance)
 
 ###************************** Indicador 7**************************###
 
-# 7. Codigo de producto adjudicado es igual a codigo de producto contratado.
+# 7. Codigo de producto adjudicado es igual a codigo de producto contratado. ##JOSE PABLO##
 Alcance[, Cod.Cont.Adj := ifelse(codigoProductoContratado_16 == codigoProductoAdjudicado_16,1,0)][]
 
 summary(Alcance$Cod.Cont.Adj)# todos son 1
