@@ -52,9 +52,6 @@ library(dplyr)
 
 options(scipen = 999)
 
-#escoger donde estará ubicado el archivo y donde caen los archivos#
-getwd()
-setwd("C:/Users/humberto.perera/Documents/GitHub")
 
 # Conexion SICOP y CASP
 #se debe hacer un paso previo de Configuración de una conexión ODBC a base de datos MSSQL Server, esto requiere de permisos de administrador"
@@ -1078,8 +1075,6 @@ names(datos$score_KMEANS) <- 1:nrow(datos)
 # Se ordenan los valores del score_KMEANS en orden descendente
 sorted_indices <- sort(datos$score_KMEANS, decreasing = TRUE)
 
-# Se muestra el histograma de los valores del score_KMEANS
-hist(datos$score_KMEANS)
 
 # Se calcula el logaritmo natural del score_KMEANS y se asigna a la columna log.score_KMEANS
 datos$log.score_KMEANS <- log(datos$score_KMEANS, base = exp(1))
@@ -1088,8 +1083,6 @@ datos$log.score_KMEANS <- log(datos$score_KMEANS, base = exp(1))
 summary(datos$score_KMEANS)
 head(datos)
 
-# Se muestra el histograma del log.score_KMEANS
-hist(datos$log.score_KMEANS)
 
 # Se muestran estadísticas resumidas del log.score_KMEANS, valor mínimo y máximo
 summary(datos$log.score_KMEANS)
@@ -1160,9 +1153,6 @@ datos$outlier_score <- LOF(dataset = datos[, -c(1:3)], k = 10)
 names(datos$outlier_score) <- 1:nrow(datos)
 sort(datos$outlier_score, decreasing = TRUE)
 
-# Se inspecciona la distribución de los puntajes de outliers
-hist(datos$outlier_score)
-summary(datos$outlier_score)
 
 # Se calculan los percentiles de los puntajes de outliers para establecer un punto de corte
 Deciles_LOF <- quantile(datos$outlier_score, probs = seq(0, 1, 0.05), na.rm = TRUE)
