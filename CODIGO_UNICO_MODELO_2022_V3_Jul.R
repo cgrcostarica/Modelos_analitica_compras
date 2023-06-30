@@ -4,26 +4,26 @@
 #**************************************INICIO**************************# 
 
 # LIBRERIAS ----
-install.packages("data.table")
-install.packages("RODBC")
-install.packages("ggplot2")
-install.packages("tidyverse")
-install.packages("summarytools")
-install.packages("GGally")
-install.packages("DT")
-install.packages("lubridate")
-install.packages("venn")
-install.packages("readxl")
-install.packages("stringi")
-install.packages("stringr")
-install.packages("writexl")
-install.packages("matrixStats")
-install.packages("robustbase")
-install.packages("rrcov")
-install.packages("factoextra")
-install.packages("h2o")
-install.packages("DDoutlier")
-install.packages("isotree")
+install.packages("data.table", repos = "http://cran.us.r-project.org")
+install.packages("RODBC", repos = "http://cran.us.r-project.org")
+install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+install.packages("tidyverse",  repos = "http://cran.us.r-project.org")
+install.packages("summarytools",  repos = "http://cran.us.r-project.org")
+install.packages("GGally",  repos = "http://cran.us.r-project.org")
+install.packages("DT",  repos = "http://cran.us.r-project.org")
+install.packages("lubridate",  repos = "http://cran.us.r-project.org")
+install.packages("venn",  repos = "http://cran.us.r-project.org")
+install.packages("readxl",  repos = "http://cran.us.r-project.org")
+install.packages("stringi",  repos = "http://cran.us.r-project.org")
+install.packages("stringr",  repos = "http://cran.us.r-project.org")
+install.packages("writexl",  repos = "http://cran.us.r-project.org")
+install.packages("matrixStats",  repos = "http://cran.us.r-project.org")
+install.packages("robustbase",  repos = "http://cran.us.r-project.org")
+install.packages("rrcov",  repos = "http://cran.us.r-project.org")
+install.packages("factoextra",  repos = "http://cran.us.r-project.org")
+install.packages("h2o",  repos = "http://cran.us.r-project.org")
+install.packages("DDoutlier",  repos = "http://cran.us.r-project.org")
+install.packages("isotree",  repos = "http://cran.us.r-project.org")
 
 
 #Cargando las librerias 
@@ -52,15 +52,12 @@ library(dplyr)
 
 options(scipen = 999)
 
-#escoger donde estará ubicado el archivo y donde caen los archivos#
-getwd()
-#setwd("C:/Users/humberto.perera/Documents/GitHub")
 
 # Conexion SICOP y CASP
 #se debe hacer un paso previo de Configuración de una conexión ODBC a base de datos MSSQL Server, esto requiere de permisos de administrador"
 
-#SICOP <-odbcConnect("ODBC_CGRSQL")
-SICOP <-odbcConnect("Conexion_SICOP")
+SICOP <-odbcConnect("ODBC_CGRSQL")
+#SICOP <-odbcConnect("Conexion_SICOP")
 tablas <- sqlTables(SICOP, tableType = "TABLE")
 
 #**************************************INDICADORES DE PLAZO**************************# 
@@ -84,30 +81,30 @@ Plazos[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Plazos<- Plazos[Plazos$tipo_bien%in%c("1","2","3","4","5","6"), ]
 
 ###************************** Indicador 1**************************###
-### Indicador Desv.inicioadju ----
+### Indicador Desv_inicioadju ----
 # 1. Desviación de la cantidad de días entre la fecha de inicio y la fecha de adjudicación, respecto al "promedio" del bien.
 # Primero se calcula los días promedio del bien 
-Promedio_iniadj_16 <- Plazos[, .(Prom.inicioadju_16 = mean(difIniAdj,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
+Promedio_iniadj_16 <- Plazos[, .(Prom_inicioadju_16 = mean(difIniAdj,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
 
 # Pegando a Plazo el promedio del codigoProductoAdjudicado
 Plazo.1 <- merge(x = Plazos, y = Promedio_iniadj_16,by = "codigoProductoAdjudicado_16",all.x = TRUE)
 
 # Posteriormente se calcula la desviacion entre cada una de las adjudicaciones y el plazo promedio
-Plazo.1[, Desv.inicioadju := difIniAdj/Prom.inicioadju_16]
+Plazo.1[, Desv_inicioadju := difIniAdj/Prom_inicioadju_16]
 
 
 ###************************** Indicador 2**************************###
-### Indicador Desv.contpriadj ----
+### Indicador Desv_contpriadj ----
 # Grado de desviación entre la fecha de adjudicación y la formalización del primer contrato
 
 #Cálculo del promedio de los días entre la fecha de adjudicación y la formalización del primer contrato por bien
-Promedio_contpriadj_16 <- Plazos[, .(Prom.contpriradj_16 = mean(difAdjContPri,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
+Promedio_contpriadj_16 <- Plazos[, .(Prom_contpriradj_16 = mean(difAdjContPri,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
 
 # Pegando a Plazo el promedio del codigoProductoAdjudicado
 Plazo.1 <- merge(x = Plazo.1,y = Promedio_contpriadj_16,by = "codigoProductoAdjudicado_16",all.x = TRUE)
 
 # Posteriormente se calcula la desviacion entre cada una de las adjudicaciones y el plazo promedio
-Plazo.1[, Desv.contpriadj := difAdjContPri/Prom.contpriradj_16]
+Plazo.1[, Desv_contpriadj := difAdjContPri/Prom_contpriradj_16]
 
 
 ###************************** Indicador 4**************************###
@@ -117,7 +114,7 @@ Plazo.1$CantModf_Plazo <- Plazo.1$cantModif
 
 
 # creando la tabla
-Indicadores_Plazo <- Plazo.1[, .(numeroActo,numeroOferta,idLinea,Desv.inicioadju,Desv.contpriadj,CantModf_Plazo, difIniAdj, Prom.inicioadju_16, difAdjContPri, Prom.contpriradj_16)][]
+Indicadores_Plazo <- Plazo.1[, .(numeroActo,numeroOferta,idLinea,Desv_inicioadju,Desv_contpriadj,CantModf_Plazo, difIniAdj, Prom_inicioadju_16, difAdjContPri, Prom_contpriradj_16)][]
 
 #### Limpieza de datos
 # Lista de archivos a conservar
@@ -157,20 +154,20 @@ Alcance<- Alcance[Alcance$tipo_bien%in%c("1","2","3","4","5","6"),]
 
 
 ###************************** Indicador 1**************************###
-### Indicador Raz.solicitada.contratada ------
+### Indicador Raz_solicitada_contratada ------
 # Cantidad de procedimientos adjudicados del mismo bien en la misma institución durante el año calendario
 Alcance.1 <- unique(x = Alcance[,c(4,5,6,22), with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16","idProcedimiento"))
-Alcance.1[, Compras.unico := .N, by = .(anno, idInstitucion,codigoProductoAdjudicado_16)][order(-Compras.unico)]
+Alcance.1[, Compras_Unico := .N, by = .(anno, idInstitucion,codigoProductoAdjudicado_16)][order(-Compras_Unico)]
 
 
 ###************************** Indicador 5**************************###
-### Indicador Raz.solicitada.contratada ------
+### Indicador Raz_solicitada_contratada ------
 # 6. Razón entre cantidad solicitada y cantidad contratada
-Alcance[, Raz.solicitada.contratada := cantidadSolicitada/cantidadContratada]
+Alcance[, Raz_solicitada_contratada := cantidadSolicitada/cantidadContratada]
 
 #Manejo de LOS VALORES INFINITOS EN LOS DATOS
-Alcance[, Raz.solicitada.contratada := ifelse(is.infinite(Raz.solicitada.contratada), cantidadSolicitada, 
-                                              Raz.solicitada.contratada)]
+Alcance[, Raz_solicitada_contratada := ifelse(is.infinite(Raz_solicitada_contratada), cantidadSolicitada, 
+                                              Raz_solicitada_contratada)]
 
 
 ###************************** Manteniendo solamente las variables de identificacion y los indicadores**************************###
@@ -179,8 +176,8 @@ Alcance.2 <- unique(x = Alcance.1, by = c("anno", "idInstitucion","codigoProduct
 Alcance.3 <- merge(x = Alcance, y = Alcance.2[,-3,with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16"),all.x = TRUE)
 
 Indicadores_Alcance <- Alcance.3[,.(numeroActo,numeroOferta,idLinea,
-                                    Compras.unico, 
-                                    Raz.solicitada.contratada, cantidadSolicitada, cantidadContratada)]
+                                    Compras_Unico, 
+                                    Raz_solicitada_contratada, cantidadSolicitada, cantidadContratada)]
 
 #### LIMPIEZA DE DATOS
 # Lista de archivos a conservar
@@ -220,22 +217,22 @@ Costos$codigoProductoAdjudicado_16<- substr(Costos$codigoProductoAdjudicado, 1, 
 Costos$codigoProductoOfertado_16<- substr(Costos$codigoProductoOfertado, 1, 16)
 
 # Cambia los montos a colones
-Costos[, ":=" (Prec.Unit.Ofer.Col = ifelse(tipoMonedaOfertada == "CRC", yes = precioUnitarioOfertado, no = precioUnitarioOfertado * tipoCambioCrcOfertado * (1 / tipoCambioDolarOfertado)))]
-Costos[, Prec.Unit.Adj.Col := ifelse(tipoMonedaAdjudicada == "CRC", precioUnitarioAdjudicado, precioUnitarioAdjudicado * tipoCambioCrcAdjudicado * (1 / tipoCambioDolarAdjudicado))]
+Costos[, ":=" (Prec_Unit_Ofer_Col = ifelse(tipoMonedaOfertada == "CRC", yes = precioUnitarioOfertado, no = precioUnitarioOfertado * tipoCambioCrcOfertado * (1 / tipoCambioDolarOfertado)))]
+Costos[, Prec_Unit_Adj_Col := ifelse(tipoMonedaAdjudicada == "CRC", precioUnitarioAdjudicado, precioUnitarioAdjudicado * tipoCambioCrcAdjudicado * (1 / tipoCambioDolarAdjudicado))]
 
 ###************************** Indicador 1**************************###
 ### Preparación de los datos Ind. 1-----           
 # 1. Grado de desviación del monto unitario adjudicado de la línea con respecto al resto de las compras u ofertas del mismo bien
 
 # Paso 1: Calcular el precio promedio del bien
-Promedio_Costos <- Costos[, .(Prom.precioUnitarioAdjudicado = mean(Prec.Unit.Adj.Col, na.rm = TRUE),
-                              Conteo_Adjudicado = length(Prec.Unit.Adj.Col)),
+Promedio_Costos <- Costos[, .(Prom_precioUnitarioAdjudicado = mean(Prec_Unit_Adj_Col, na.rm = TRUE),
+                              Conteo_Adjudicado = length(Prec_Unit_Adj_Col)),
                           keyby = .(codigoProductoAdjudicado_16)]
 
 # Obtener el recuento de valores únicos en la columna "codigoProductoAdjudicado_16" en el dataframe Promedio_Costos.
 
 # Cambiar los precios adjudicados a colones o dólares, según el tipo de moneda adjudicada.
-Costos[, Prec.Unit.Adj.Col := ifelse(tipoMonedaAdjudicada == "CRC",
+Costos[, Prec_Unit_Adj_Col := ifelse(tipoMonedaAdjudicada == "CRC",
                                      precioUnitarioAdjudicado,
                                      precioUnitarioAdjudicado * tipoCambioCrcAdjudicado * (1 / tipoCambioDolarAdjudicado))]
 
@@ -271,14 +268,14 @@ Costos.1 <- merge(x = Costos, y = Precios_compilados, by = "codigoProductoAdjudi
 
 
 ###************************** Indicador 1**************************###
-### Indicador desv.adj.vs.oferta.mas.baja ------
+### Indicador desv_adj_vs_oferta_mas_baja ------
 # 4. Grado de desviación entre el monto de la linea adjudicada con respecto a la siguiente linea ofertada más baja
-Costos.1[, Desv.Mas.Baja := ifelse(precioUnitarioMenorColones == 0,
-                                   Prec.Unit.Adj.Col,
-                                   Prec.Unit.Adj.Col / precioUnitarioMenorColones)]
+Costos.1[, Desv_Mas_Baja := ifelse(precioUnitarioMenorColones == 0,
+                                   Prec_Unit_Adj_Col,
+                                   Prec_Unit_Adj_Col / precioUnitarioMenorColones)]
 
 
-Menor.Desv.Baja <- Costos.1[Desv.Mas.Baja < 1][]
+Menor.Desv_Baja <- Costos.1[Desv_Mas_Baja < 1][]
 
 ###************************** Indicador 2**************************###
 ### Preparación de los datos Ind. 1-----           
@@ -309,34 +306,34 @@ Costos.2 <- na.omit(Costos.2, cols = c("precio_unitario_contratado_colones"))
 Costos.2[, Conteo_nombre := length(anno), keyby = .(nombre_unico)]
 
 # Se calcula el promedio del precio unitario contratado para cada combinación única
-Promedio_contratado <- Costos.2[, .(Prom.contr = mean(precio_unitario_contratado_colones, na.rm = TRUE)), 
+Promedio_contratado <- Costos.2[, .(Prom_contr = mean(precio_unitario_contratado_colones, na.rm = TRUE)), 
                                 keyby = c("numeroActo", "numeroOferta", "idLinea")]
 
 # Se realiza un merge entre Costos.2 y el promedio contratado utilizando ciertas columnas como claves
 Costos.2 <- merge(x = Costos.2, y = Promedio_contratado, by = c("numeroActo", "numeroOferta", "idLinea"), all.x = TRUE)
 
 # Se agrega una columna "Verif" que indica si el precio unitario contratado es igual al promedio contratado
-Costos.2[, Verif := ifelse(Prom.contr == precio_unitario_contratado_colones, 0, 1)]
+Costos.2[, Verif := ifelse(Prom_contr == precio_unitario_contratado_colones, 0, 1)]
 
 # Se realiza un merge entre Costos.1 y el promedio contratado, asignando el precio contratado a Costos.3
 Costos.3 <- merge(x = Costos.1, y = Promedio_contratado, by = c("numeroActo", "numeroOferta", "idLinea"), all.x = TRUE)
 
-### Indicador Desv.Monto.Unit.Cont --------
-Costos.3[, Desv.Monto.Unit.Cont := (Prom.contr/Prec.Unit.Adj.Col)]
+### Indicador Desv_Monto.Unit.Cont --------
+Costos.3[, Desv_Monto_Unit_Cont := (Prom_contr/Prec_Unit_Adj_Col)]
 
 Indicadores_Costo <- Costos.3[,.(numeroActo,numeroOferta,
                                  idLinea, 
-                                 Desv.Mas.Baja,
-                                 Desv.Monto.Unit.Cont, 
+                                 Desv_Mas_Baja,
+                                 Desv_Monto_Unit_Cont, 
                                  precioUnitarioMenorColones, 
-                                 Prom.contr, 
-                                 Prec.Unit.Adj.Col)]
+                                 Prom_contr, 
+                                 Prec_Unit_Adj_Col)]
 
 names(Indicadores_Costo) <- c("numeroActo","numeroOferta","idLinea",
-                              "desv.adj.vs.oferta.mas.baja",
-                              "desv.cont.vs.adj", "Prec.Unit.Adj.Col", 
+                              "desv_adj_vs_oferta_mas_baja",
+                              "desv_cont_vs_adj", "Prec_Unit_Adj_Col", 
                               "precioUnitarioMenorColones", 
-                              "Prom.contr")      
+                              "Prom_contr")      
 
 #### LIMPIEZA DE DATOS
 # Lista de archivos a conservar
@@ -378,24 +375,24 @@ rm(list = objetos_a_eliminar)
 datos<-Set_Modelo_sin_NA
 
 # Establecemos los percentiles para la validación de resultados utilizando la función `quantile()`
-Deciles_Compras.Unico <- quantile(datos$Compras.unico, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Raz.Solic.Contra <- quantile(datos$Raz.solicitada.contratada, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Desv.Adj.Ofer.Baj <- quantile(datos$desv.adj.vs.oferta.mas.baja, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Desv.Cont.Adju <- quantile(datos$desv.cont.vs.adj, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Desv.Ini.Adj <- quantile(datos$Desv.inicioadju, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Desv.Cont.Pri.Adj <- quantile(datos$Desv.contpriadj, probs = seq(0, 1, 0.01), na.rm = FALSE)
-Deciles_Cant.Mod.Plazo <- quantile(datos$CantModf_Plazo, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Compras_Unico <- quantile(datos$Compras_Unico, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Raz_Solic_Contra <- quantile(datos$Raz_solicitada_contratada, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Desv_Adj_Ofer_Baj <- quantile(datos$desv_adj_vs_oferta_mas_baja, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Desv_Cont_Adju <- quantile(datos$desv_cont_vs_adj, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Desv_Ini_Adj <- quantile(datos$Desv_inicioadju, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Desv_Cont_Pri_Adj <- quantile(datos$Desv_contpriadj, probs = seq(0, 1, 0.01), na.rm = FALSE)
+Deciles_Cant_Mod_Plazo <- quantile(datos$CantModf_Plazo, probs = seq(0, 1, 0.01), na.rm = FALSE)
 
 # Acotación de variables en el dataframe 'datos'
 # Para cada variable, se verifica si es mayor que el percentil 100 (máximo)
 # Si es mayor, se asigna el valor del percentil 100 multiplicado por 2, de lo contrario se mantiene el valor original
-datos[, Compras.unico.Acot:=ifelse(datos$Compras.unico > Deciles_Compras.Unico[100],Deciles_Compras.Unico[100]*2,Compras.unico)]
-datos[, Raz.solicitada.contratada.Acot:=ifelse(datos$Raz.solicitada.contratada > Deciles_Raz.Solic.Contra[100],Deciles_Raz.Solic.Contra[100]*2,Raz.solicitada.contratada)]
-datos[, desv.adj.vs.oferta.mas.baja.Acot:=ifelse(datos$desv.adj.vs.oferta.mas.baja > Deciles_Desv.Adj.Ofer.Baj[100],Deciles_Desv.Adj.Ofer.Baj[100]*2,desv.adj.vs.oferta.mas.baja)]
-datos[, desv.cont.vs.adj.Acot:=ifelse(datos$desv.cont.vs.adj > Deciles_Desv.Cont.Adju[100],Deciles_Desv.Cont.Adju[100]*2,desv.cont.vs.adj)]
-datos[, Desv.inicioadju.Acot:=ifelse(datos$Desv.inicioadju > Deciles_Desv.Ini.Adj[100],Deciles_Desv.Ini.Adj[100]*2,Desv.inicioadju)]
-datos[, Desv.contpriadj.Acot:=ifelse(datos$Desv.contpriadj > Deciles_Desv.Cont.Pri.Adj[100],Deciles_Desv.Cont.Pri.Adj[100]*2,Desv.contpriadj)]
-datos[, CantModf_Plazo.Acot:=ifelse(datos$CantModf_Plazo > Deciles_Cant.Mod.Plazo[100],Deciles_Cant.Mod.Plazo[100]*2,CantModf_Plazo)]
+datos[, Compras_Unico_Acot:=ifelse(datos$Compras_Unico > Deciles_Compras_Unico[100],Deciles_Compras_Unico[100]*2,Compras_Unico)]
+datos[, Raz_solicitada_contratada_Acot:=ifelse(datos$Raz_solicitada_contratada > Deciles_Raz_Solic_Contra[100],Deciles_Raz_Solic_Contra[100]*2,Raz_solicitada_contratada)]
+datos[, desv_adj_vs_oferta_mas_baja_Acot:=ifelse(datos$desv_adj_vs_oferta_mas_baja > Deciles_Desv_Adj_Ofer_Baj[100],Deciles_Desv_Adj_Ofer_Baj[100]*2,desv_adj_vs_oferta_mas_baja)]
+datos[, desv_cont_vs_adj_Acot:=ifelse(datos$desv_cont_vs_adj > Deciles_Desv_Cont_Adju[100],Deciles_Desv_Cont_Adju[100]*2,desv_cont_vs_adj)]
+datos[, Desv_inicioadju_Acot:=ifelse(datos$Desv_inicioadju > Deciles_Desv_Ini_Adj[100],Deciles_Desv_Ini_Adj[100]*2,Desv_inicioadju)]
+datos[, Desv_contpriadj_Acot:=ifelse(datos$Desv_contpriadj > Deciles_Desv_Cont_Pri_Adj[100],Deciles_Desv_Cont_Pri_Adj[100]*2,Desv_contpriadj)]
+datos[, CantModf_Plazo_Acot:=ifelse(datos$CantModf_Plazo > Deciles_Cant_Mod_Plazo[100],Deciles_Cant_Mod_Plazo[100]*2,CantModf_Plazo)]
 
 
 # Creación de un nuevo dataframe 'datos_acotados' que excluye las columnas 4 a 10 del dataframe 'datos'
@@ -403,13 +400,13 @@ datos_acotados <- datos[, -c(4:10)]
 
 # Normalización de variables en el dataframe 'datos_acotados'
 # Para cada variable, se calcula el logaritmo natural del valor original más 1
-datos_acotados[, Log_Compras.unico.Acot:=log(datos$Compras.unico +1)]
-datos_acotados[, Log_Raz.solicitada.contratada.Acot:=log(datos$Raz.solicitada.contratada.Acot+1)]
-datos_acotados[, Log_desv.adj.vs.oferta.mas.baja.Acot:=log(datos$desv.adj.vs.oferta.mas.baja.Acot+1)]
-datos_acotados[, Log_desv.cont.vs.adj.Acot:=log(datos$desv.cont.vs.adj.Acot+1)]
-datos_acotados[, Log_Desv.inicioadju.Acot:=log(datos$Desv.inicioadju.Acot+1)]
-datos_acotados[, Log_Desv.contpriadj.Acot:=log(datos$Desv.contpriadj.Acot+1)]
-datos_acotados[, Log_CantModf_Plazo.Acot:=log(datos$CantModf_Plazo.Acot+1)]
+datos_acotados[, Log_Compras_Unico_Acot:=log(datos$Compras_Unico +1)]
+datos_acotados[, Log_Raz_solicitada_contratada_Acot:=log(datos$Raz_solicitada_contratada_Acot+1)]
+datos_acotados[, Log_desv_adj_vs_oferta_mas_baja_Acot:=log(datos$desv_adj_vs_oferta_mas_baja_Acot+1)]
+datos_acotados[, Log_desv_cont_vs_adj_Acot:=log(datos$desv_cont_vs_adj_Acot+1)]
+datos_acotados[, Log_Desv_inicioadju_Acot:=log(datos$Desv_inicioadju_Acot+1)]
+datos_acotados[, Log_Desv_contpriadj_Acot:=log(datos$Desv_contpriadj_Acot+1)]
+datos_acotados[, Log_CantModf_Plazo_Acot:=log(datos$CantModf_Plazo_Acot+1)]
 
 # Creación de un nuevo dataframe 'datos_Log' que excluye las columnas 4 a 10 de 'datos_acotados'
 datos_Log <- datos_acotados[, -c(4:10)]
@@ -865,14 +862,14 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
                             "nombreFamilia", "Nombre_Institucion", "idInstitucion", 
                             "cedula_proveedor", "nombre_proveedor", 
                             "tipo_proveedor", "tamano_proveedor", "anno", "modalidadProcedimiento", 
-                            "Monto_linea_colones", "Consenso", "Compras.unico", 
-                            "Raz.solicitada.contratada", "Compras.unico.Acot", "Raz.solicitada.contratada.Acot", 
-                            "desv.adj.vs.oferta.mas.baja.Acot", "desv.cont.vs.adj.Acot", 
-                            "Desv.inicioadju.Acot", "Desv.contpriadj.Acot", "CantModf_Plazo.Acot", 
-                            "desv.adj.vs.oferta.mas.baja", "desv.cont.vs.adj", "Prec.Unit.Adj.Col",
-                            "precioUnitarioMenorColones", "Prom.contr", "Desv.inicioadju", 
-                            "Desv.contpriadj", "CantModf_Plazo", "difIniAdj", "Prom.inicioadju_16", 
-                            "difAdjContPri", "Prom.contpriradj_16")
+                            "Monto_linea_colones", "Consenso", "Compras_Unico", 
+                            "Raz_solicitada_contratada", "Compras_Unico_Acot", "Raz_solicitada_contratada_Acot", 
+                            "desv_adj_vs_oferta_mas_baja_Acot", "desv_cont_vs_adj_Acot", 
+                            "Desv_inicioadju_Acot", "Desv_contpriadj_Acot", "CantModf_Plazo_Acot", 
+                            "desv_adj_vs_oferta_mas_baja", "desv_cont_vs_adj", "Prec_Unit_Adj_Col",
+                            "precioUnitarioMenorColones", "Prom_contr", "Desv_inicioadju", 
+                            "Desv_contpriadj", "CantModf_Plazo", "difIniAdj", "Prom_inicioadju_16", 
+                            "difAdjContPri", "Prom_contpriradj_16")
 
 # Escribir el contenido de Set_final_V4 en un archivo CSV llamado "Resultados_Finales_Prueba2.csv".
 fwrite(Set_final_V5, "Resultados_Finales_Prueba2.csv", sep = ";", dec = ".")
