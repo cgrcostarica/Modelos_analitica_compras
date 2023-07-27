@@ -48,7 +48,7 @@ library(h2o)
 library(DDoutlier)
 library(isotree)
 library(dplyr)
-
+print("Librerías cargadas")
 
 options(scipen = 999)
 
@@ -124,7 +124,7 @@ objetos_totales <- ls()
 # Obtener la lista de objetos a eliminar
 objetos_a_eliminar <- setdiff(objetos_totales, objetos_a_conservar)
 rm(list = objetos_a_eliminar)
-
+print("Calculo de plazo realizado")
 
 #**************************************INDICADORES DE ALCANCE**************************# 
 ## Alcance ----
@@ -187,7 +187,7 @@ objetos_totales <- ls()
 # Obtener la lista de objetos a eliminar
 objetos_a_eliminar <- setdiff(objetos_totales, objetos_a_conservar)
 rm(list = objetos_a_eliminar)
-
+print("Calculo de alcance realizado")
 
 #**************************************INDICADORES DE COSTO**************************# 
 ## Costo -------------
@@ -344,7 +344,7 @@ objetos_totales <- ls()
 # Obtener la lista de objetos a eliminar
 objetos_a_eliminar <- setdiff(objetos_totales, objetos_a_conservar)
 rm(list = objetos_a_eliminar)
-
+print("Calculo de costos realizado")
 #**************************************Construcción de la Base de datos**************************# 
 
 # Primero guardamos todos los archivos en una lista
