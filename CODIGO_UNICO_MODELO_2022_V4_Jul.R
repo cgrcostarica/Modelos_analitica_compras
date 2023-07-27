@@ -871,21 +871,23 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
                             "Desv_contpriadj", "CantModf_Plazo", "difIniAdj", "Prom_inicioadju_16", 
                             "difAdjContPri", "Prom_contpriradj_16")
 
+print("Base de datos lista")
 # Escribir el contenido de Set_final_V4 en un archivo CSV llamado "Resultados_Finales_Prueba2.csv".
 fwrite(Set_final_V5, "Resultados_Finales_Prueba2.csv", sep = ";", dec = ".")
+print("CSV exportado")
 
 
 #Carga de los datos en el servidor este paso no es necesario para usuarios externos
 # Instalar y cargar el paquete RMySQL
-install.packages("RMySQL")
+install.packages("RMySQL", repos = "http://cran.us.r-project.org")
 library(RMySQL)
 
-install.packages("dotenv")
+install.packages("dotenv", repos = "http://cran.us.r-project.org")
 library(dotenv)
 
 # Cargar el archivo .env
 
-dotenv::load_dot_env("C:/Users/humberto.perera/Documents/Codigo_compras/Codigo interno/credenciales.env")
+dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/modelo_compras/credenciales.env")
 
 
 host <- Sys.getenv("HOST")    # Dirección del servidor MySQL
