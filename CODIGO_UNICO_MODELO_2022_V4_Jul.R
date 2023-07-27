@@ -875,3 +875,33 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
 fwrite(Set_final_V5, "Resultados_Finales_Prueba2.csv", sep = ";", dec = ".")
 
 
+#Carga de los datos en el servidor este paso no es necesario para usuarios externos
+# Instalar y cargar el paquete RMySQL
+install.packages("RMySQL")
+library(RMySQL)
+
+install.packages("dotenv")
+library(dotenv)
+
+# Cargar el archivo .env
+
+dotenv::load_dot_env("C:/Users/humberto.perera/Documents/Codigo_compras/Codigo interno/credenciales.env")
+
+
+host <- Sys.getenv("HOST")    # Dirección del servidor MySQL
+usuario <- Sys.getenv("USUARIO") # Usuario de MySQL
+contrasena <- Sys.getenv("PASS") # Contraseña del usuario
+base_de_datos <- Sys.getenv("BD") # Nombre de la base de datos
+puerto_str <- Sys.getenv("PUERTO") # Puerto específico de MySQL
+puerto <- as.integer(puerto_str)
+
+# Establecer la conexión a la base de datos MySQL con el puerto específico
+con <- dbConnect(MySQL(), host = host, user = usuario, password = contrasena, dbname = base_de_datos, port = puerto)
+
+# Escribir el contenido de Set_final_V5 en una tabla de la base de datos MySQL (reemplaza "nombre_de_la_tabla" con el nombre deseado para la tabla)
+nombre_de_tabla <- "modelo"
+dbWriteTable(con, name = nombre_de_tabla, value = Set_final_V5 , row.names = FALSE, overwrite=TRUE)
+
+# Cerrar la conexión a la base de datos MySQL
+dbDisconnect(con)
+
