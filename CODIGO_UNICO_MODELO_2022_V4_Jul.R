@@ -872,6 +872,7 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
                             "difAdjContPri", "Prom_contpriradj_16")
 
 print("Base de datos lista")
+getwd()
 # Escribir el contenido de Set_final_V4 en un archivo CSV llamado "Resultados_Finales_Prueba2.csv".
 fwrite(Set_final_V5, "Resultados_Finales_Prueba2.csv", sep = ";", dec = ".")
 print("CSV exportado")
@@ -887,7 +888,7 @@ library(dotenv)
 
 # Cargar el archivo .env
 
-dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/modelo_compras/credenciales.env")
+dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/credenciales.env")
 
 
 host <- Sys.getenv("HOST")    # Dirección del servidor MySQL
