@@ -608,6 +608,7 @@ Resultados_LOF <- data.frame(numeroActo = datos_Log$numeroActo,
                              stringsAsFactors = FALSE)
 
 
+
 ###************************** LIMPIEZA DE LO PREVIO REALIZADO**************************###
 # Lista de archivos a conservar
 objetos_a_conservar <- c("Set_Modelo_sin_NA", 
@@ -814,7 +815,7 @@ jerarquiaClasificacionBS <- data.table(sqlFetch(SICOP, "dbo.jerarquiaClasificaci
 # Obtener los datos de la tabla "identificacionbs" desde la base de datos SICOP
 identificacionbs <- data.table(sqlFetch(SICOP, "dbo.identificacionbs",as.is=TRUE))
 clasificacionbs <- data.table(sqlFetch(SICOP, "dbo.clasificacionbs",as.is=TRUE))
-                                        
+
 # Combinar los datos de Set_final y lineasadjudicadas en base a las columnas "numeroActo", "idLinea" y "numeroOferta".
 Set_final_V2<- merge(Set_final,
                      lineasadjudicadas[,.(nro_acto,nro_linea,nro_oferta, cedula_proveedor, codigo_producto)],
@@ -856,7 +857,14 @@ Set_final_V4<- merge(Set_final_V4,
                      Indicadores_Plazo,
                      by = c("numeroActo","idLinea","numeroOferta"),
                      all.x = TRUE)
-Set_final_V5<-Set_final_V4[,-c(21:25)]
+
+Set_final_V4<- merge(Set_final_V4,
+                     Indicadores_Alcance,
+                     by = c("numeroActo","idLinea","numeroOferta"),
+                     all.x = TRUE)
+names(Set_final_V4)
+names(Indicadores_Alcance)
+Set_final_V5<-Set_final_V4[,-c(21:25,45:46)]
 colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProcedimiento", 
                             "codigo_identificacion", "nombre_identificacion", "nombreClasificacion", 
                             "nombreFamilia", "Nombre_Institucion", "idInstitucion", 
@@ -869,7 +877,9 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
                             "desv_adj_vs_oferta_mas_baja", "desv_cont_vs_adj", "Prec_Unit_Adj_Col",
                             "precioUnitarioMenorColones", "Prom_contr", "Desv_inicioadju", 
                             "Desv_contpriadj", "CantModf_Plazo", "difIniAdj", "Prom_inicioadju_16", 
-                            "difAdjContPri", "Prom_contpriradj_16")
+                            "difAdjContPri", "Prom_contpriradj_16", "cantidadSolicitada", "cantidadContratada")
+
+getwd()
 
 print("Base de datos lista")
 getwd()
