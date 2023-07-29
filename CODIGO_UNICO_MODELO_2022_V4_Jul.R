@@ -1,4 +1,4 @@
-#*********************************CODIGO DE ANALÍTICA DE DATOS PARA COMPRAS PÚBLICAS*******************************#
+#*********************************CODIGO DE ANALITICA DE DATOS PARA COMPRAS PUBLICAS*******************************#
 #**************************************************ELABORADO POR LA CGR*****************************************#
 
 #**************************************INICIO**************************# 
@@ -901,20 +901,20 @@ library(dotenv)
 dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/credenciales.env")
 
 
-host <- Sys.getenv("HOST")    # Dirección del servidor MySQL
+host <- Sys.getenv("HOST")    # Direccion del servidor MySQL
 usuario <- Sys.getenv("USUARIO") # Usuario de MySQL
 contrasena <- Sys.getenv("PASS") # Contraseña del usuario
 base_de_datos <- Sys.getenv("BD") # Nombre de la base de datos
-puerto_str <- Sys.getenv("PUERTO") # Puerto específico de MySQL
+puerto_str <- Sys.getenv("PUERTO") # Puerto especifico de MySQL
 puerto <- as.integer(puerto_str)
 
-# Establecer la conexión a la base de datos MySQL con el puerto específico
+# Establecer la conexion a la base de datos MySQL con el puerto especifico
 con <- dbConnect(MySQL(), host = host, user = usuario, password = contrasena, dbname = base_de_datos, port = puerto)
 
 # Escribir el contenido de Set_final_V5 en una tabla de la base de datos MySQL (reemplaza "nombre_de_la_tabla" con el nombre deseado para la tabla)
 nombre_de_tabla <- "modelo"
 dbWriteTable(con, name = nombre_de_tabla, value = Set_final_V5 , row.names = FALSE, overwrite=TRUE)
 
-# Cerrar la conexión a la base de datos MySQL
+# Cerrar la conexion a la base de datos MySQL
 dbDisconnect(con)
 
