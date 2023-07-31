@@ -107,7 +107,7 @@ Plazo.1 <- merge(x = Plazo.1,y = Promedio_contpriadj_16,by = "codigoProductoAdju
 Plazo.1[, Desv_contpriadj := difAdjContPri/Prom_contpriradj_16]
 
 
-###************************** Indicador 4**************************###
+###************************** Indicador 3**************************###
 ### Indicador CantModf_Plazo ----
 # Asignando los valores de la columna cantModif a la nueva columna CantModf_Plazo
 Plazo.1$CantModf_Plazo <- Plazo.1$cantModif
@@ -154,13 +154,13 @@ Alcance<- Alcance[Alcance$tipo_bien%in%c("1","2","3","4","5","6"),]
 
 
 ###************************** Indicador 1**************************###
-### Indicador Raz_solicitada_contratada ------
+### Indicador Compras Unico ------
 # Cantidad de procedimientos adjudicados del mismo bien en la misma institución durante el año calendario
 Alcance.1 <- unique(x = Alcance[,c(4,5,6,22), with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16","idProcedimiento"))
 Alcance.1[, Compras_Unico := .N, by = .(anno, idInstitucion,codigoProductoAdjudicado_16)][order(-Compras_Unico)]
 
 
-###************************** Indicador 5**************************###
+###************************** Indicador 2**************************###
 ### Indicador Raz_solicitada_contratada ------
 # 6. Razón entre cantidad solicitada y cantidad contratada
 Alcance[, Raz_solicitada_contratada := cantidadSolicitada/cantidadContratada]
@@ -879,7 +879,6 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
                             "Desv_contpriadj", "CantModf_Plazo", "difIniAdj", "Prom_inicioadju_16", 
                             "difAdjContPri", "Prom_contpriradj_16", "cantidadSolicitada", "cantidadContratada")
 
-getwd()
 
 print("Base de datos lista")
 getwd()
@@ -890,11 +889,11 @@ print("CSV exportado")
 
 #Carga de los datos en el servidor este paso no es necesario para usuarios externos
 # Instalar y cargar el paquete RMySQL
-install.packages("RMySQL", repos = "http://cran.us.r-project.org")
+#install.packages("RMySQL", repos = "http://cran.us.r-project.org")
 library(DBI) 
 library(RMySQL)
 
-install.packages("dotenv", repos = "http://cran.us.r-project.org")
+#install.packages("dotenv", repos = "http://cran.us.r-project.org")
 library(dotenv)
 
 # Cargar el archivo .env
