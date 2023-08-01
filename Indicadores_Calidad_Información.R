@@ -62,7 +62,7 @@ Base_General_10_solos_elegibles<-Base_General_10[elegible=="Sí",]
 Base_General_10_solos_elegibles<-setDT(Base_General_10_solos_elegibles)
 Promedio_Precio_Ofertas <- Base_General_10_solos_elegibles[, .(Prom_precio_Unitario_Ofertado = mean(precio_unitario_ofertado_colones, na.rm = TRUE), Conteo_Ofertas = length(precio_unitario_ofertado_colones)), keyby = .(nro_procedimiento, numero_linea)]
 Base_General_11<- merge(Base_General_10,Promedio_Precio_Ofertas, by=c("nro_procedimiento","numero_linea"), all.x = TRUE)
-Base_General_12<- merge(Base_General_11, Alcance[,.(numeroActo, numeroOferta, idLinea, idProcedimiento, cantModif)], by.x=c("nro_acto", "nro_oferta","numero_linea"),by.y=c("numeroActo", "numeroOferta", "idLinea"), all.x = TRUE)
+Base_General_12<- merge(Base_General_11, Alcance[,.(numeroActo, numeroOferta, idLinea, idProcedimiento, cantModif, codigoProductoAdjudicado)], by.x=c("nro_acto", "nro_oferta","numero_linea"),by.y=c("numeroActo", "numeroOferta", "idLinea"), all.x = TRUE)
 Base_General_13<- merge(Base_General_12, modulos, by.x=c("idProcedimiento", "numero_linea"), by.y=c("idProcedimiento", "idLinea"), all.x = TRUE)
 Conteo_objeciones <- objeciones[, .(Total_objeciones = length(nro_recurso)), keyby = .(nro_sicop, linea_objetada)]
 Base_General_14<- merge(Base_General_13, Conteo_objeciones, by.x=c("nro_sicop", "numero_linea"), by.y=c("nro_sicop", "linea_objetada"), all.x = TRUE)
@@ -142,7 +142,7 @@ Base_General_14[,.N, keyby = Hitos_Ausentes][order(-N)][,Porcentaje := (N/sum(N)
 #Resumen_completitud
 #Resumen_completitud_ancha <- dcast(Resumen_completitud, cedula_institucion~ Estimado_mala_calidad, value.var = "Porcentaje")
 
-Completitud[precio_unitario_estimado_colones<1,]
+#Completitud[precio_unitario_estimado_colones<1,]
 
 ###************************** Indicadores Cantidad de dígitos **************************###
 ## Largo digitos precio unitario adjudicado ----
@@ -163,12 +163,65 @@ Base_General_15[Rango_Dif_Pre_Adj_vs_Pre_Contra==1 & Cantidad_Secuencia==1,]
 Base_General_15[Rango_Dif_Prom_Ofer_vs_Pre_Adju==1 & Cantidad_Secuencia==1,]
 
 
-Base_General_15[nro_procedimiento=="2022CD-000044-0019000001",]
+Base_General_15[nro_procedimiento=="2021CE-000003-0000300001",]
+contratado_dolares<-LineasContratadas[tipo_moneda=="USD",]
+contratado_dolares[as.numeric(precio_unitario_contratado)>1000000,]
+hist(as.numeric(contratado_dolares$precio_unitario_contratado))
+
 
 names(Base_General_15)
 Base_General_15[,Calidad_final:=(Estimado_mala_calidad
                                  +Rango_Dif_Pre_Adj_vs_Pre_Contra
                                  +Rango_Dif_Prom_Ofer_vs_Pre_Adju)]
+
+names(Base_General_14$Total_objeciones)
+table(Base_General_14$desierto)
+names(Base_General_15)
+Final_Calidad<-Base_General_15[,c(1:3,6,7,10, 44, 48, 50, 53:55, 61, 63, 67)]
+names(Final_Calidad)
+
+#Selección final de indicadores ---------
+Final_Calidad<-Final_Calidad[,c("nro_acto", "numero_linea", "nro_oferta","nro_procedimiento", 
+                                "cedula_institucion", "cedula_proveedor", "codigoProductoAdjudicado", 
+                                "Total_objeciones", 
+                                "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
+                                "Dif_oferta_mayor_constitucion", "fecha_constitucion",
+                                "Dif_adju_mayor_expiracion", "fecha_expiracion", "fecha_adj_firme",
+                                "Estimado_mala_calidad", "precio_unitario_estimado_colones",
+                                "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
+                                "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
+                                "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju")]
+
+colnames(Final_Calidad) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProcedimiento", 
+                            "idInstitucion", 
+                            "cedula_proveedor", "codigo_identificacion", 
+                            "Total_objeciones",
+                            "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
+                            "Dif_oferta_mayor_constitucion", "fecha_constitucion",
+                            "Dif_adju_mayor_expiracion", "fecha_expiracion", "fecha_adj_firme",
+                            "Estimado_mala_calidad", "precio_unitario_estimado_colones",
+                            "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
+                            "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
+                            "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju")
+
+setDT(Final_Calidad)
+Final_Calidad[,Anno:=substr(numeroProcedimiento,1,4)]
+Final_Calidad[,Cod_16:=substr(codigo_identificacion,1,16)]
+Final_Calidad[,Tipo_bien:=substr(codigo_identificacion,1,1)]
+
+
+Final_Calidad_2<- Final_Calidad[(Anno < 2023 & Anno > 2019),]
+Final_Calidad_3<- Final_Calidad_2[Final_Calidad_2$Tipo_bien%in%c("1","2","3","4","5","6"), ]
+
+setwd("C:/Users/jose.arroyo/Desktop")
+fwrite(Final_Calidad_3, "Resultados_Indicadores_Calidad.csv", sep = ";", dec = ".")
+
+
+
+
+
+
+
 
 Base_General_15[Calidad_final==3 & Cantidad_Secuencia==2,]
 setDT(Base_General_14)
