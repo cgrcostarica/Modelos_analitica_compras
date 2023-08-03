@@ -16,11 +16,9 @@ suppressMessages(suppressWarnings(library(matrixStats)))
 options(scipen = 999)
 
 
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/AI")
 
-
-# Conexion SICOP y CASP
-SICOP <-odbcConnect("Conexion_SICOP")
+SICOP <-odbcConnect("ODBC_CGRSQL")
+#SICOP <-odbcConnect("Conexion_SICOP")
 tablas <- sqlTables(SICOP, tableType = "TABLE")
 
 # Cargando tablas -----
@@ -177,11 +175,10 @@ Base_General_15[,Calidad_final:=(Estimado_mala_calidad
 names(Base_General_14$Total_objeciones)
 table(Base_General_14$desierto)
 names(Base_General_15)
-Final_Calidad<-Base_General_15[,c(1:3,6,7,10, 44, 48, 50, 53:55, 61, 63, 67)]
-names(Final_Calidad)
+
 
 #Selección final de indicadores ---------
-Final_Calidad<-Final_Calidad[,c("nro_acto", "numero_linea", "nro_oferta","nro_procedimiento", 
+Final_Calidad<-Base_General_15[,c("nro_acto", "numero_linea", "nro_oferta","nro_procedimiento", 
                                 "cedula_institucion", "cedula_proveedor", "codigoProductoAdjudicado", 
                                 "Total_objeciones", 
                                 "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
@@ -213,45 +210,40 @@ Final_Calidad[,Tipo_bien:=substr(codigo_identificacion,1,1)]
 Final_Calidad_2<- Final_Calidad[(Anno < 2023 & Anno > 2019),]
 Final_Calidad_3<- Final_Calidad_2[Final_Calidad_2$Tipo_bien%in%c("1","2","3","4","5","6"), ]
 
-setwd("C:/Users/jose.arroyo/Desktop")
-fwrite(Final_Calidad_3, "Resultados_Indicadores_Calidad.csv", sep = ";", dec = ".")
+setwd("C:/Users/humberto.perera/Desktop")
+fwrite(Final_Calidad_3, "Calidad.csv", sep = ";", dec = ".")
+print("csv exportado")
+
+#Carga de los datos en el servidor este paso no es necesario para usuarios externos
+# Instalar y cargar el paquete RMySQL
+#install.packages("RMySQL", repos = "http://cran.us.r-project.org")
+library(DBI) 
+library(RMySQL)
+
+#install.packages("dotenv", repos = "http://cran.us.r-project.org")
+library(dotenv)
+
+# Cargar el archivo .env
+
+dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/credenciales.env")
 
 
+host <- Sys.getenv("HOST")    # Direccion del servidor MySQL
+usuario <- Sys.getenv("USUARIO") # Usuario de MySQL
+contrasena <- Sys.getenv("PASS") # Contraseña del usuario
+base_de_datos <- Sys.getenv("BD") # Nombre de la base de datos
+puerto_str <- Sys.getenv("PUERTO") # Puerto especifico de MySQL
+puerto <- as.integer(puerto_str)
 
+# Establecer la conexion a la base de datos MySQL con el puerto especifico
+con <- dbConnect(MySQL(), host = host, user = usuario, password = contrasena, dbname = base_de_datos, port = puerto)
 
+# Escribir el contenido de Set_final_V5 en una tabla de la base de datos MySQL (reemplaza "nombre_de_la_tabla" con el nombre deseado para la tabla)
+nombre_de_tabla <- "calidad"
+dbWriteTable(con, name = nombre_de_tabla, value = Final_Calidad_3 , row.names = FALSE, overwrite=TRUE)
 
-
-
-
-Base_General_15[Calidad_final==3 & Cantidad_Secuencia==2,]
-setDT(Base_General_14)
-View(Base_General_14[,.(precio_unitario_adjudicado_colones, Largo_Digito_Pre_Adju)])
-
-
-numero <- 12345
-cantidad_digitos <- nchar(as.character(numero))
-
-
-
-
-summary(is.na(objeciones))
-head(objeciones)
-uniqueN(objeciones$tipo_recurso)
-
-objeciones[,.N, keyby = .(resultado, causa_resultado)][order(-N)][,Porcentaje := (N/sum(N))*100][]
-
-Base_General_14[nro_sicop==20200900677,]
-
-
-INDER<-Base_General_14[cedula_institucion==4000042143,]
-UCR<-Base_General_14[cedula_institucion==4000042149,]
-
-
-INDER[nro_procedimiento=="2022LA-000006-0015500001",]
-UCR[nro_procedimiento=="2020LN-000005-0000900001",]
-UCR[nro_procedimiento=="2022LA-000016-0000900001",]
-
-
+# Cerrar la conexion a la base de datos MySQL
+dbDisconnect(con)
 
 
 

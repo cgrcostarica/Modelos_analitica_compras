@@ -1,3 +1,9 @@
+#***********************************************CODIGO DE PERFIL INSTITUCIONAL***************************************#
+#**************************************************ELABORADO POR LA CGR*****************************************#
+
+#**************************************INICIO**************************# 
+
+
 # 1. Cargando las librerias -----------------------------------------------
 
 suppressMessages(suppressWarnings(library(data.table)))
@@ -17,12 +23,9 @@ suppressMessages(suppressWarnings(library(matrixStats)))
 options(scipen = 999)
 
 
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
-
-
-# 3. Conexion SICOP y CASP  --------------------------------------------------------
-
-SICOP <-odbcConnect("Conexion_SICOP")
+# 2. Conexion SICOP y CASP  ---Este paso es exclusivo para la CGR, los usuarios externos pueden descargar cada tabla en el site---------------------------
+SICOP <-odbcConnect("ODBC_CGRSQL")
+#SICOP <-odbcConnect("Conexion_SICOP")
 tablas <- sqlTables(SICOP, tableType = "TABLE")
 
 # 4. Cargando las tablas necesarias -------------------------------
@@ -60,26 +63,16 @@ tablas$TABLE_NAME
 
 # Uniendo las bases para tener los plazos vinculados a una misma base --------------------
 
-#B_Plazos_0<- merge(procedimientos[,.(nro_sicop, cedula_institucion)],Recepciones, by="nro_sicop", all.x = TRUE)
 B_Plazos_1<- LineasProc[,.(nro_sicop, numero_linea)]
-#B_Plazos_1<- merge(B_Plazos_0,B_Plazos_1[,.(nro_sicop,numero_linea)],by = "nro_sicop",all.x = TRUE)
 B_Plazos_2<- merge(B_Plazos_1,procedimientos[,.(nro_sicop,cedula_institucion,fecha_publicacion,nro_procedimiento,tipo_procedimiento, modalidad_procedimiento)],by = "nro_sicop",all.x = TRUE)
 B_Plazos_3<- merge(B_Plazos_2,lineasadjudicadas[,.(nro_sicop,nro_acto,nro_oferta,nro_linea)], by.x = c("nro_sicop","numero_linea"),by.y = c("nro_sicop","nro_linea"),all.x = TRUE)
 B_Plazos_4<- merge(B_Plazos_3,adjudicaciones[,.(nro_sicop,nro_acto,fecha_adj_firme,desierto)], by = c("nro_sicop","nro_acto"),all.x = TRUE)
 B_Plazos_5<- merge(B_Plazos_4,Ofertas[,.(nro_sicop,nro_oferta,fecha_presenta_oferta,elegible)], by = c("nro_sicop","nro_oferta"),all.x = TRUE)
 B_Plazos_6<- merge(B_Plazos_5,LineasContratadas[,.(nro_sicop,nro_acto,nro_contrato,nro_linea_cartel)], by.x = c("nro_sicop","nro_acto","numero_linea"), by.y = c("nro_sicop","nro_acto","nro_linea_cartel"),all.x = TRUE)
 B_Plazos_7<- merge(B_Plazos_6,Contratos[,.(nro_sicop,nro_contrato,fecha_notificacion,secuencia)], by ="nro_contrato",all.y = TRUE)
-#B_Plazos_8<- merge(B_Plazos_7,Recepciones, by.x=c("nro_sicop.x", "secuencia"), by.y=c("nro_sicop", "secuencia"), all.x = TRUE)
-
-#uniqueN(Recepciones, by=c("nro_sicop", "secuencia"))
-#nrow(Recepciones)
-
-#uniqueN(B_Plazos_8, by=c("nro_sicop.x", "nro_sicop.y"))
 
 names(B_Plazos_7)
-#View(B_Plazos_7[nro_procedimiento=="2021CD-000039-0000100001",])
-#head(B_Plazos_8)
-#summary(B_Plazos_7)
+
 
 #Establecimiento de las fechas con el formato fechas
 B_Plazos_7$fecha_publicacion<-as.Date(B_Plazos_7$fecha_publicacion)
@@ -87,7 +80,6 @@ B_Plazos_7$fecha_presenta_oferta<-as.Date(B_Plazos_7$fecha_presenta_oferta)
 B_Plazos_7$fecha_adj_firme<-as.Date(B_Plazos_7$fecha_adj_firme)
 B_Plazos_7$fecha_contrato<-as.Date(B_Plazos_7$fecha_notificacion)
 
-#names(LineasProc)
 
 # Calculando la diferencia entre todas las fechas de inter?s --------------------
 B_Plazos_7[, Dif_publi_present_ofer:= (fecha_presenta_oferta-fecha_publicacion)]
@@ -100,13 +92,10 @@ B_Plazos_7[, Dif_adj_firme_contrato:= (fecha_contrato-fecha_adj_firme)]
 ########################################
 ######?CUANTO DURAN LOS PROCEDIMIENTOS?#
 ########################################
-#2015CD-000004-0000400001, este procedimiento tiene evaluaci?n del proveedor
-#head(B_Plazos_7)
-#names(B_Plazos_7)
+
 B_Plazos_7[, anno:= substr(nro_procedimiento,1,4)]
 
-#Ejemplo con el caso del INS: 4000001902
-#cedula_institucion == "4000001902"
+
 
 Resumen_Plazos_Tipo_Procedimientos<- B_Plazos_7[,.(Dif_publi_adj_firme_Institucion=mean(Dif_publi_adj_firme, na.rm = TRUE),
                                                    Dif_publi_contrato_Institucion=mean(Dif_publi_contrato, na.rm = TRUE),
@@ -123,8 +112,7 @@ Resumen_Plazos_Tipo_Modalidad<- B_Plazos_7[,.(Dif_publi_adj_firme_Institucion=me
 ##############################################
 ######?CUANDO SE REALIZAN LOS PROCEDIMIENTOS?#
 ##############################################
-#head(B_Plazos_7)
-#names(B_Plazos_7)
+
 
 B_Plazos_7[, mes:= month(fecha_publicacion)]
 B_Plazos_7[, anno:= year(fecha_publicacion)]
@@ -135,11 +123,6 @@ Conteo_CUANDO<- B_Plazos_7[,.(Conteo_lineas=length(c(nro_acto,nro_oferta,numero_
 
 B_Plazos_8<- merge(B_Plazos_7, Conteo_CUANDO, by ="nro_procedimiento", all.y = TRUE)
 
-#head(B_Plazos_7)
-
-#B_Plazos_7[Conteo_procedimientos != 1, ]
-
-
 
 ######################
 ######?QUE CONTRATAN?#
@@ -147,13 +130,6 @@ B_Plazos_8<- merge(B_Plazos_7, Conteo_CUANDO, by ="nro_procedimiento", all.y = T
 
 Que_Contratan<- lineasadjudicadas
 
-#names(Que_Contratan)
-#head(Que_Contratan)
-#names(alcance)
-#names(lineasadjudicadas)
-#names(adjudicaciones)
-#names(LineasContratadas)
-#names(productobs)
 
 Que_Contratan$tipo_cambio_dolar <- as.numeric(Que_Contratan$tipo_cambio_dolar)
 Que_Contratan$tipo_cambio_crc <- as.numeric(Que_Contratan$tipo_cambio_crc)
@@ -165,7 +141,6 @@ Que_Contratan[, Prec.Unit.Adj.Col := ifelse(tipo_moneda == "CRC",precio_unitario
 Que_Contratan[, Monto_linea_colones := as.numeric(cantidad_adjudicada) * (Prec.Unit.Adj.Col - as.numeric(descuento) + as.numeric(iva) + as.numeric(otros_impuestos) + as.numeric(acarreos))]
 Que_Contratan[, codigo_producto_16 :=substr(codigo_producto,1,16)]
 Que_Contratan[, codigo_producto_1 :=substr(codigo_producto,1,1)]
-#names(productobs)
 
 
 #Pegando la descripci?n de los bienes contratados
@@ -199,22 +174,11 @@ Factores_A_Quien_Compran<- Que_Contratan_4[, .(cedula_institucion, nro_procedimi
 
 Factores_A_Quien_Compran[, anno:= substr(nro_procedimiento,1,4)]
 
-# Factores_A_Quien_Compran[nro_procedimiento=="2021CD-000039-0000100001", ]
-# Ventas_GMG<-Factores_A_Quien_Compran[cedula_proveedor=="3101590004", ]
-# 
-# setwd("G:/Unidades compartidas/Fiscalizaci?n Preventiva de Compras P?blicas")
-# fwrite(x = Ventas_GMG, file = Ventas_GMG.csv ,sep = ";",dec = ",")
 
 #######################
 ######ANALISIS MERCADO#
 #######################
 
-# 3. Conexion SICOP y CASP  --------------------------------------------------------
-
-SICOP <-odbcConnect("Conexion_SICOP")
-tablas <- sqlTables(SICOP, tableType = "TABLE")
-# 4. Cargando las tablas necesarias -------------------------------
-tablas$TABLE_NAME
 
 Alcance <- data.table(sqlFetch(SICOP, "ds.alcance",as.is=TRUE))
 ofertas <- data.table(sqlFetch(SICOP, "dbo.ofertas",as.is=TRUE))
@@ -405,7 +369,6 @@ setDT(Base_Analisis_Mercado)
 
 
 #GUARDANDO LOS ARCHIVOS EN CSV
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
 
 fwrite(x = Resumen_Plazos_Tipo_Modalidad, 
        file = "Perfil_Cuanto_tipo_modalidad.csv",sep = ";",dec = ",")
@@ -419,7 +382,7 @@ fwrite(x = Resumen_Plazos_Tipo_Procedimientos,
 Cuando_Contrata<- B_Plazos_8[, .(nro_procedimiento,cedula_institucion,anno,mes, Conteo_lineas, Conteo_procedimientos)][]
 
 #GUARDANDO LOS ARCHIVOS EN CSV
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
+
 fwrite(x = Cuando_Contrata, 
        file = "Perfil_Cuando_Contrata.csv",sep = ";",dec = ",")
 
@@ -432,7 +395,6 @@ Como_Contratan<- B_Plazos_7[,.(Conteo_lineas=length(c(nro_acto,nro_oferta,numero
                               Conteo_procedimientos=length(nro_procedimiento)), 
                               keyby=.(tipo_procedimiento, anno,cedula_institucion)]
 
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
 fwrite(x = Como_Contratan, 
        file = "Perfil_Como_Contratan.csv",sep = ";",dec = ",")
 
@@ -440,7 +402,6 @@ fwrite(x = Como_Contratan,
 
 #### QUE CONTRATAN ######
 
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
 fwrite(x = Factores_A_Quien_Compran, 
        file = "Perfil_Base_Que_Quien_Contratan.csv",sep = ";",dec = ",")
 
@@ -457,7 +418,6 @@ Que_Contrata_codigo16<- Factores_A_Quien_Compran[,
                                                    total_gastado=sum(Monto_linea_colones, na.rm=TRUE)), 
                                                  keyby=.(codigo_producto_16, anno,cedula_institucion)]
 
-setwd("G:/Unidades compartidas/Fiscalizacion Preventiva de Compras Publicas/Fiscalización Preventiva de Compras Públicas/10_Perfil_Instituciones_SICOP/Perfil SYL")
 fwrite(x = Que_Contrata_codigo1, 
        file = "Perfil_Que_Contrata_codigo1_.csv",sep = ";",dec = ",")
 
@@ -513,3 +473,73 @@ fwrite(x = A_Quien_Contrata_canton_Empresas,
 
 fwrite(x = Base_Analisis_Mercado, 
        file = "Perfil_Analisis_Mercado.csv",sep = ";",dec = ",")
+
+
+#Carga de los datos en el servidor este paso no es necesario para usuarios externos
+# Instalar y cargar el paquete RMySQL
+#install.packages("RMySQL", repos = "http://cran.us.r-project.org")
+library(DBI) 
+library(RMySQL)
+
+#install.packages("dotenv", repos = "http://cran.us.r-project.org")
+library(dotenv)
+
+# Cargar el archivo .env
+
+dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/credenciales.env")
+
+
+host <- Sys.getenv("HOST")    # Direccion del servidor MySQL
+usuario <- Sys.getenv("USUARIO") # Usuario de MySQL
+contrasena <- Sys.getenv("PASS") # Contraseña del usuario
+base_de_datos <- Sys.getenv("BD") # Nombre de la base de datos
+puerto_str <- Sys.getenv("PUERTO") # Puerto especifico de MySQL
+puerto <- as.integer(puerto_str)
+
+# Establecer la conexion a la base de datos MySQL con el puerto especifico
+con <- dbConnect(MySQL(), host = host, user = usuario, password = contrasena, dbname = base_de_datos, port = puerto)
+
+# Escribir el contenido de las tablas en una tabla de la base de datos MySQL (reemplaza "nombre_de_la_tabla" con el nombre deseado para la tabla)
+nombre_de_tabla <- "Perfil_Cuanto_tipo_modalidad"
+dbWriteTable(con, name = nombre_de_tabla, value = Resumen_Plazos_Tipo_Modalidad , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Cuanto_tipo_procedimiento"
+dbWriteTable(con, name = nombre_de_tabla, value = Resumen_Plazos_Tipo_Procedimientos , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Cuando_Contrata"
+dbWriteTable(con, name = nombre_de_tabla, value = Cuando_Contrata , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Como_Contratan"
+dbWriteTable(con, name = nombre_de_tabla, value = Como_Contratan , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Base_Que_Quien_Contratan"
+dbWriteTable(con, name = nombre_de_tabla, value = Factores_A_Quien_Compran , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Que_Contrata_codigo1"
+dbWriteTable(con, name = nombre_de_tabla, value = Que_Contrata_codigo1 , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Que_Contrata_codigo16"
+dbWriteTable(con, name = nombre_de_tabla, value = Que_Contrata_codigo16 , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_A_Quien_Contrata_Empresas"
+dbWriteTable(con, name = nombre_de_tabla, value = A_Quien_Contrata_Empresas, row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_A_Quien_Contrata_Tipo_Empresas"
+dbWriteTable(con, name = nombre_de_tabla, value = A_Quien_Contrata_Tipo_Empresas , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_A_Quien_Contrata_Tamano_Empresas"
+dbWriteTable(con, name = nombre_de_tabla, value = A_Quien_Contrata_Tamano_Empresas , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_A_Quien_Contrata_provincia_Empresas"
+dbWriteTable(con, name = nombre_de_tabla, value = A_Quien_Contrata_provincia_Empresas , row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_A_Quien_Contrata_canton_Empresas"
+dbWriteTable(con, name = nombre_de_tabla, value = A_Quien_Contrata_canton_Empresas, row.names = FALSE, overwrite=TRUE)
+
+nombre_de_tabla <- "Perfil_Analisis_Mercado"
+dbWriteTable(con, name = nombre_de_tabla, value = Base_Analisis_Mercado, row.names = FALSE, overwrite=TRUE)
+
+
+# Cerrar la conexion a la base de datos MySQL
+dbDisconnect(con)
+
