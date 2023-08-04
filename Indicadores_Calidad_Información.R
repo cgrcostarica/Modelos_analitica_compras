@@ -1,3 +1,8 @@
+#*********************************CODIGO DE INDICADORES DE CALIDAD INFORMACION COMPRAS PUBLICAS*******************************#
+#**************************************************ELABORADO POR LA CGR*****************************************#
+
+#**************************************INICIO**************************# 
+
 # Librerias -----------------------------------------------
 suppressMessages(suppressWarnings(library(data.table)))
 suppressMessages(suppressWarnings(library(RODBC)))
@@ -134,13 +139,7 @@ Base_General_14[, Hitos_Ausentes := rowSums(is.na(.SD)), .SDcols = c("primerFech
 Base_General_14[, Completitud := ifelse(is.infinite(3/(3 - Hitos_Ausentes)), 0, 3/(3 - Hitos_Ausentes))]
 Base_General_14[,.N, keyby = Hitos_Ausentes][order(-N)][,Porcentaje := (N/sum(N))*100][]
 
-#names(Base_General_14)
-#Completitud<- Base_General_14[!is.na(primerFechaAdjudicacion),]
-#Resumen_completitud<-Completitud[,.N, keyby = .(Estimado_mala_calidad, cedula_institucion)][order(-N)][,Porcentaje := (N/sum(N))*100][]
-#Resumen_completitud
-#Resumen_completitud_ancha <- dcast(Resumen_completitud, cedula_institucion~ Estimado_mala_calidad, value.var = "Porcentaje")
 
-#Completitud[precio_unitario_estimado_colones<1,]
 
 ###************************** Indicadores Cantidad de dígitos **************************###
 ## Largo digitos precio unitario adjudicado ----
@@ -161,20 +160,11 @@ Base_General_15[Rango_Dif_Pre_Adj_vs_Pre_Contra==1 & Cantidad_Secuencia==1,]
 Base_General_15[Rango_Dif_Prom_Ofer_vs_Pre_Adju==1 & Cantidad_Secuencia==1,]
 
 
-Base_General_15[nro_procedimiento=="2021CE-000003-0000300001",]
-contratado_dolares<-LineasContratadas[tipo_moneda=="USD",]
-contratado_dolares[as.numeric(precio_unitario_contratado)>1000000,]
-hist(as.numeric(contratado_dolares$precio_unitario_contratado))
 
-
-names(Base_General_15)
 Base_General_15[,Calidad_final:=(Estimado_mala_calidad
                                  +Rango_Dif_Pre_Adj_vs_Pre_Contra
                                  +Rango_Dif_Prom_Ofer_vs_Pre_Adju)]
 
-names(Base_General_14$Total_objeciones)
-table(Base_General_14$desierto)
-names(Base_General_15)
 
 
 #Selección final de indicadores ---------
@@ -238,7 +228,7 @@ puerto <- as.integer(puerto_str)
 # Establecer la conexion a la base de datos MySQL con el puerto especifico
 con <- dbConnect(MySQL(), host = host, user = usuario, password = contrasena, dbname = base_de_datos, port = puerto)
 
-# Escribir el contenido de Set_final_V5 en una tabla de la base de datos MySQL (reemplaza "nombre_de_la_tabla" con el nombre deseado para la tabla)
+# Escribir el contenido de calidad en una tabla de la base de datos MySQL 
 nombre_de_tabla <- "calidad"
 dbWriteTable(con, name = nombre_de_tabla, value = Final_Calidad_3 , row.names = FALSE, overwrite=TRUE)
 
