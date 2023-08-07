@@ -1,3 +1,8 @@
+#*********************************CODIGO DPARA EL TRALASADO DE LAS TABLAS A INSTANCIA SQL*******************************#
+#**************************************************ELABORADO POR LA CGR*****************************************#
+
+#**************************************INICIO**************************# 
+
 #Mover las bases de datos de un sql a otro 
 
 SICOP <-odbcConnect("ODBC_CGRSQL")

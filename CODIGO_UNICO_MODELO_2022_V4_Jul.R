@@ -63,10 +63,10 @@ tablas <- sqlTables(SICOP, tableType = "TABLE")
 #**************************************INDICADORES DE PLAZO**************************# 
 # INDICADORES ----
 ## Plazo ----
-# Cargando las tablas necesarias 
+### Cargando las tablas necesarias 
 Plazos <- data.table(sqlFetch(SICOP, "ds.plazos",as.is=TRUE))
 
-# Definición de tipo de variable
+### Definición de tipo de variable
 Plazos$difIniAdj<- as.numeric(Plazos$difIniAdj)
 Plazos$difAdjContPri<- as.numeric(Plazos$difAdjContPri)
 Plazos$difAdjContUlt<- as.numeric(Plazos$difAdjContUlt)
@@ -74,16 +74,16 @@ Plazos$difContPriRec<- as.numeric(Plazos$difContPriRec)
 Plazos$difContUltRec<- as.numeric(Plazos$difContUltRec)
 Plazos$cantModif<- as.numeric(Plazos$cantModif)
 
-#limpiando los datos para incluir solo datos desde el 2020, y solo bienes
+###limpiando los datos para incluir solo datos desde el 2020, y solo bienes
 Plazos$codigoProductoAdjudicado_16<- substr(Plazos$codigoProductoAdjudicado, 1, 16)
 Plazos<- Plazos[(anno < 2023 & anno > 2019),]
 Plazos[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Plazos<- Plazos[Plazos$tipo_bien%in%c("1","2","3","4","5","6"), ]
 
 ###************************** Indicador 1**************************###
-### Indicador Desv_inicioadju ----
-# 1. Desviación de la cantidad de días entre la fecha de inicio y la fecha de adjudicación, respecto al "promedio" del bien.
-# Primero se calcula los días promedio del bien 
+## Indicador Desv_inicioadju ----
+### 1. Desviación de la cantidad de días entre la fecha de inicio y la fecha de adjudicación, respecto al "promedio" del bien.
+#### Primero se calcula los días promedio del bien 
 Promedio_iniadj_16 <- Plazos[, .(Prom_inicioadju_16 = mean(difIniAdj,na.rm = TRUE)), keyby = .(codigoProductoAdjudicado_16)][]
 
 # Pegando a Plazo el promedio del codigoProductoAdjudicado
@@ -898,7 +898,7 @@ library(dotenv)
 
 # Cargar el archivo .env
 
-dotenv::load_dot_env("C:/Users/humberto.perera/Desktop/credenciales.env")
+dotenv::load_dot_env("C:/Users/hperera.admin/Desktop/credenciales.env")
 
 
 host <- Sys.getenv("HOST")    # Direccion del servidor MySQL
