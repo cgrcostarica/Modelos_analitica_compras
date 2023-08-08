@@ -174,6 +174,7 @@ Base_General_14[Dif_Lar_Cont_vs_Adju==1,]
 Cantidad_Secuencia <- Base_General_14[, .(Cantidad_Secuencia = length(secuencia)), keyby = .(nro_acto, nro_oferta, numero_linea)]
 
 Base_General_15<- merge(Base_General_14, Cantidad_Secuencia, by=c("nro_acto", "nro_oferta", "numero_linea"), all.x = TRUE)
+Base_General_15<- merge(Base_General_15, proveedores[,.(cedula_proveedor, tipo_proveedor)], by=c("cedula_proveedor"), all.x = TRUE)
 
 Base_General_15[Rango_Dif_Pre_Adj_vs_Pre_Contra==1 & Cantidad_Secuencia==1,]
 Base_General_15[Rango_Dif_Prom_Ofer_vs_Pre_Adju==1 & Cantidad_Secuencia==1,]
