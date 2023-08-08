@@ -42,8 +42,25 @@ modulos <- data.table(sqlFetch(SICOP, "ds.modulos",as.is=TRUE))
 Alcance <- data.table(sqlFetch(SICOP, "ds.alcance",as.is=TRUE))
 objeciones <- data.table(sqlFetch(SICOP, "dbo.objeciones",as.is=TRUE))
 
+bases <- list("Instituciones","lineasadjudicadas","procedimientos","adjudicaciones","proveedores", "Ofertas",
+              "identificacionbs", "LineasProc", "LineasContratadas","Contratos", "lineasofertadas", "modulos", "Alcance", "objeciones")
+
+for (base in bases){
+  base <- gsub("á", "a", base)
+  base <- gsub("é", "e", base)
+  base <- gsub("í", "i", base)
+  base <- gsub("ó", "o", base)
+  base <- gsub("ú", "u", base)
+  base <- gsub("Á", "A", base)
+  base <- gsub("É", "E", base)
+  base <- gsub("Í", "I", base)
+  base <- gsub("Ó", "O", base)
+  base <- gsub("Ú", "U", base)
+}
+
+
 # Creación de set ----
-Base_General_1<- LineasProc[,.(nro_sicop, numero_linea)]
+Base_General_1<- LineasProc[,.(nro_sicop, numero_linea, codigo_identificacion)]
 Base_General_2<- merge(Base_General_1,procedimientos[,.(nro_sicop,cedula_institucion,fecha_publicacion,nro_procedimiento,tipo_procedimiento, modalidad_procedimiento)],by = "nro_sicop",all.x = TRUE)
 Base_General_3<- merge(Base_General_2,lineasadjudicadas[,.(nro_sicop,nro_acto,nro_oferta,nro_linea, precio_unitario_adjudicado, tipo_moneda, tipo_cambio_crc, tipo_cambio_dolar)], by.x = c("nro_sicop","numero_linea"),by.y = c("nro_sicop","nro_linea"),all.x = TRUE)
 setnames(Base_General_3, c("tipo_moneda", "tipo_cambio_crc", "tipo_cambio_dolar"), c("tipo_moneda_adj", "tipo_cambio_crc_adj", "tipo_cambio_dolar_adj"))
@@ -69,6 +86,8 @@ Base_General_12<- merge(Base_General_11, Alcance[,.(numeroActo, numeroOferta, id
 Base_General_13<- merge(Base_General_12, modulos, by.x=c("idProcedimiento", "numero_linea"), by.y=c("idProcedimiento", "idLinea"), all.x = TRUE)
 Conteo_objeciones <- objeciones[, .(Total_objeciones = length(nro_recurso)), keyby = .(nro_sicop, linea_objetada)]
 Base_General_14<- merge(Base_General_13, Conteo_objeciones, by.x=c("nro_sicop", "numero_linea"), by.y=c("nro_sicop", "linea_objetada"), all.x = TRUE)
+Base_General_14<- merge(Base_General_14, Instituciones, by.x=c("cedula_institucion"), by.y=c("cedula"), all.x = TRUE)
+Base_General_14<- merge(Base_General_14, identificacionbs[,.(codigo_identificacion, nombre_identificacion)], by=c("codigo_identificacion"), all.x = TRUE)
 
 #Establecimiento de las fechas con el formato fechas
 Base_General_14$fecha_publicacion<-as.Date(Base_General_14$fecha_publicacion)
@@ -103,7 +122,7 @@ Base_General_14[Dif_present_ofer_adj_firme<1,][]
 Base_General_14[, Dif_oferta_mayor_constitucion:= (fecha_presenta_oferta-fecha_constitucion)]
 Base_General_14[,.N, keyby = Dif_oferta_mayor_constitucion][order(-N)][,Porcentaje := (N/sum(N))*140][]
 Base_General_14[Dif_oferta_mayor_constitucion<14,][]
-#Base_General_14[cedula_proveedor==3101792759,]
+
 
 ### Ind. Fecha adjudicación menor a oferta ----
 Base_General_14[, Dif_adju_mayor_expiracion:= (fecha_expiracion-fecha_adj_firme)]
@@ -169,7 +188,93 @@ Base_General_15[,Calidad_final:=(Estimado_mala_calidad
 
 #Selección final de indicadores ---------
 Final_Calidad<-Base_General_15[,c("nro_acto", "numero_linea", "nro_oferta","nro_procedimiento", 
-                                "cedula_institucion", "cedula_proveedor", "codigoProductoAdjudicado", 
+                                  "modalidad_procedimiento",
+                                  "cedula_institucion", "nombre_institucion",  
+                                  "cedula_proveedor",  "tipo_proveedor", 
+                                  "codigoProductoAdjudicado", "nombre_identificacion",
+                                  "Total_objeciones", 
+                                  "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
+                                  "Dif_oferta_mayor_constitucion", "fecha_constitucion",
+                                  "Dif_adju_mayor_expiracion", "fecha_expiracion", "fecha_adj_firme",
+                                  "Estimado_mala_calidad", "precio_unitario_estimado_colones",
+                                  "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
+                                  "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
+                                  "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju")]
+
+#Reemplazando los valores de Total de objeciones de NA a cero, 
+Final_Calidad$Total_objeciones <- replace(Final_Calidad$Total_objeciones, is.na(Final_Calidad$Total_objeciones), 0)
+
+
+# Creando valores en deciles para la variable Dif_adju_mayor_expiracion
+min_val <- min(Final_Calidad$Dif_adju_mayor_expiracion, na.rm = TRUE)
+max_val <- max(Final_Calidad$Dif_adju_mayor_expiracion, na.rm = TRUE)
+media_val <- median(Final_Calidad$Dif_adju_mayor_expiracion, na.rm = TRUE)
+
+# Generar los deciles usando la función cut()
+Final_Calidad$Dif_adju_mayor_expiracion<-as.numeric(Final_Calidad$Dif_adju_mayor_expiracion)
+
+Final_Calidad[, Deciles_Dif_adju_mayor_expiracion := cut(Dif_adju_mayor_expiracion, 
+                                                         breaks = quantile(Dif_adju_mayor_expiracion, probs = seq(0, 1, 0.1), na.rm = TRUE),
+                                                         labels = FALSE, include.lowest = TRUE)]
+
+# Definir los límites para los grupos
+limites <- c(-0, 1, 365, 3651, 7301, 10951, 14601, 18251, Inf)
+
+# Definir las etiquetas para los grupos
+etiquetas <- c("Ya expirada la empresa", "0 años (menos de 365 días)", 
+               "De 1  año (365 días) a 10 años (3650 días)", 
+               "De 11  años (3651 días) a 20 años (7300 días)",
+               "De 21  años (7301 días) a 30 años (10950 días)", 
+               "De 31  años (10950 días) a 40 años (14600 días)",
+               "De 40  años (14601 días) a 50 años (18250 días)",
+               "Más de 50  años (18250 días)")
+
+# Generar grupos usando la función cut()
+Final_Calidad[, Grupos_Dif_adju_mayor_expiracion := cut(Dif_adju_mayor_expiracion, 
+                                                        breaks = limites,
+                                                        labels = etiquetas,
+                                                        include.lowest = TRUE)]
+
+Final_Calidad$Grupos_Dif_adju_mayor_expiracion <- ifelse(is.na(Final_Calidad$Grupos_Dif_adju_mayor_expiracion), 
+                                                         "No es posible estimar el dato", 
+                                                         Final_Calidad$Grupos_Dif_adju_mayor_expiracion)
+
+#Establenciendo los rangos 
+Final_Calidad$Dif_oferta_mayor_constitucion<-as.numeric(Final_Calidad$Dif_oferta_mayor_constitucion)
+
+min_val <- min(Final_Calidad$Dif_oferta_mayor_constitucion, na.rm = TRUE)
+max_val <- max(Final_Calidad$Dif_oferta_mayor_constitucion, na.rm = TRUE)
+media_val <- median(Final_Calidad$Dif_oferta_mayor_constitucion, na.rm = TRUE)
+
+# Definir los límites para los grupos
+limites <- c(30, 180, 365, 3651, 7301, 10951, 14601, 18251, Inf)
+
+# Definir las etiquetas para los grupos
+etiquetas <- c("Menos de 1 mes", 
+               "De medio año (180 días) a 1 año (365 días)",
+               "De 1 año (365 días) a 10 años (3650 días)", 
+               "De 11 años (3651 días) a 20 años (7300 días)",
+               "De 21 años (7301 días) a 30 años (10950 días)", 
+               "De 31 años (10950 días) a 40 años (14600 días)",
+               "De 40 años (14601 días) a 50 años (18250 días)",
+               "Más de 50 años (18250 días)")
+
+# Generar grupos usando la función cut()
+Final_Calidad[, Grupos_Dif_oferta_mayor_constitucion := cut(Dif_oferta_mayor_constitucion, 
+                                                            breaks = limites,
+                                                            labels = etiquetas,
+                                                            include.lowest = TRUE)]
+
+Final_Calidad$Grupos_Dif_oferta_mayor_constitucion <- ifelse(is.na(Final_Calidad$Grupos_Dif_oferta_mayor_constitucion), 
+                                                             "No es posible estimar el dato", 
+                                                             Final_Calidad$Grupos_Dif_oferta_mayor_constitucion)
+
+#Selección final de indicadores ---------
+Final_Calidad<-Final_Calidad[,c("nro_acto", "numero_linea", "nro_oferta","nro_procedimiento", 
+                                "modalidad_procedimiento",
+                                "cedula_institucion", "nombre_institucion",  
+                                "cedula_proveedor",  "tipo_proveedor", 
+                                "codigoProductoAdjudicado", "nombre_identificacion",
                                 "Total_objeciones", 
                                 "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
                                 "Dif_oferta_mayor_constitucion", "fecha_constitucion",
@@ -177,19 +282,23 @@ Final_Calidad<-Base_General_15[,c("nro_acto", "numero_linea", "nro_oferta","nro_
                                 "Estimado_mala_calidad", "precio_unitario_estimado_colones",
                                 "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
                                 "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
-                                "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju")]
+                                "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju",
+                                "Grupos_Dif_adju_mayor_expiracion", "Grupos_Dif_oferta_mayor_constitucion")]
 
 colnames(Final_Calidad) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProcedimiento", 
-                            "idInstitucion", 
-                            "cedula_proveedor", "codigo_identificacion", 
-                            "Total_objeciones",
-                            "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
-                            "Dif_oferta_mayor_constitucion", "fecha_constitucion",
-                            "Dif_adju_mayor_expiracion", "fecha_expiracion", "fecha_adj_firme",
-                            "Estimado_mala_calidad", "precio_unitario_estimado_colones",
-                            "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
-                            "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
-                            "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju")
+                             "modalidad_procedimiento",
+                             "idInstitucion", "nombre_institucion",  
+                             "cedula_proveedor",  "tipo_proveedor", 
+                             "codigo_identificacion", "nombre_identificacion",
+                             "Total_objeciones",
+                             "Dif_publi_present_ofer", "fecha_presenta_oferta", "fecha_publicacion",
+                             "Dif_oferta_mayor_constitucion", "fecha_constitucion",
+                             "Dif_adju_mayor_expiracion", "fecha_expiracion", "fecha_adj_firme",
+                             "Estimado_mala_calidad", "precio_unitario_estimado_colones",
+                             "Rango_Dif_Prom_Ofer_vs_Pre_Adju", "precio_unitario_adjudicado_colones", "Prom_precio_Unitario_Ofertado",
+                             "Completitud", "primerFechaAdjudicacion", "primerFechaContratacion", "primerFechaRecepcion",
+                             "Dif_Lar_Cont_vs_Adju", "Largo_Digito_Pre_Contr", "Largo_Digito_Pre_Adju",
+                             "Grupos_Dif_adju_mayor_expiracion", "Grupos_Dif_oferta_mayor_constitucion")
 
 setDT(Final_Calidad)
 Final_Calidad[,Anno:=substr(numeroProcedimiento,1,4)]
@@ -200,7 +309,21 @@ Final_Calidad[,Tipo_bien:=substr(codigo_identificacion,1,1)]
 Final_Calidad_2<- Final_Calidad[(Anno < 2023 & Anno > 2019),]
 Final_Calidad_3<- Final_Calidad_2[Final_Calidad_2$Tipo_bien%in%c("1","2","3","4","5","6"), ]
 
-setwd("C:/Users/humberto.perera/Desktop")
+Final_Calidad_3$Grupos_Dif_oferta_mayor_constitucion <- ifelse(is.na(Final_Calidad_3$Grupos_Dif_oferta_mayor_constitucion), 
+                                                               "No es posible estimar el dato", 
+                                                               Final_Calidad_3$Grupos_Dif_oferta_mayor_constitucion)
+
+Final_Calidad_3$Grupos_Dif_adju_mayor_expiracion <- ifelse(is.na(Final_Calidad_3$Grupos_Dif_adju_mayor_expiracion), 
+                                                           "No es posible estimar el dato", 
+                                                           Final_Calidad_3$Grupos_Dif_adju_mayor_expiracion)
+
+Final_Calidad_3[, Dif_Lar_Cont_vs_Adju := ifelse(is.na(Dif_Lar_Cont_vs_Adju), 
+                                                 "No se puede calcular", 
+                                                 Dif_Lar_Cont_vs_Adju)]
+
+summary(is.na(Final_Calidad_3))
+
+
 fwrite(Final_Calidad_3, "Calidad.csv", sep = ";", dec = ".")
 print("csv exportado")
 
