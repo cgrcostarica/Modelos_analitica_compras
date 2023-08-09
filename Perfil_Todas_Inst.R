@@ -543,3 +543,4 @@ dbWriteTable(con, name = nombre_de_tabla, value = Base_Analisis_Mercado, row.nam
 # Cerrar la conexion a la base de datos MySQL
 dbDisconnect(con)
 
+print("Final de Perfiles institucionales")

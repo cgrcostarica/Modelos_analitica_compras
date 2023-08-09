@@ -51,3 +51,5 @@ for (i in 1:nrow(tablas)) {
 
 # Cerrar la conexion a la base de datos MySQL
 dbDisconnect(con)
+
+print("Mover las tablas")

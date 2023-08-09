@@ -359,7 +359,7 @@ dbWriteTable(con, name = nombre_de_tabla, value = Final_Calidad_3 , row.names = 
 # Cerrar la conexion a la base de datos MySQL
 dbDisconnect(con)
 
-
+print("Indicadores de Calidad")
 
 
 
