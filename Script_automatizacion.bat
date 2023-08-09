@@ -1,5 +1,5 @@
-﻿@echo off 
-set "ruta=C:\Users\humberto.perera\Desktop\modelo_compras"
+@echo off 
+set "ruta=C:\Users\humberto.pereraCGR\Desktop\modelo_compras"
 
 rem Asegurarse de que la ruta exista antes de eliminarla
 if exist "%ruta%" (
@@ -13,4 +13,14 @@ if not exist "%ruta%" (
 
 rem Asegurarse de que Rscript esté instalado y la ruta sea correcta
 "C:\Program Files\R\R-4.3.1\bin\Rscript.exe" "%ruta%\CODIGO_UNICO_MODELO_2022_V4_Jul.R"
+
+rem Asegurarse de que Rscript esté instalado y la ruta sea correcta
+"C:\Program Files\R\R-4.3.1\bin\Rscript.exe" "%ruta%\Indicadores_Calidad_Información.R"
+
+rem Asegurarse de que Rscript esté instalado y la ruta sea correcta
+"C:\Program Files\R\R-4.3.1\bin\Rscript.exe" "%ruta%\mover_sql.R"
+
+rem Asegurarse de que Rscript esté instalado y la ruta sea correcta
+"C:\Program Files\R\R-4.3.1\bin\Rscript.exe" "%ruta%\Perfil_Todas_Inst.R"
+
 pause

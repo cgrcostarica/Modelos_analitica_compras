@@ -325,7 +325,7 @@ Final_Calidad_3[, Dif_Lar_Cont_vs_Adju := ifelse(is.na(Dif_Lar_Cont_vs_Adju),
 summary(is.na(Final_Calidad_3))
 
 
-fwrite(Final_Calidad_3, "Calidad.csv", sep = ";", dec = ".")
+fwrite(Final_Calidad_3, "calidad.csv", sep = ";", dec = ".")
 print("csv exportado")
 
 #Carga de los datos en el servidor este paso no es necesario para usuarios externos
