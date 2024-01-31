@@ -77,7 +77,7 @@ Plazos$cantModif<- as.numeric(Plazos$cantModif)
 
 ###limpiando los datos para incluir solo datos desde el 2020, y solo bienes
 Plazos$codigoProductoAdjudicado_16<- substr(Plazos$codigoProductoAdjudicado, 1, 16)
-Plazos<- Plazos[(anno < 2024 & anno > 2019),]
+Plazos<- Plazos[(anno < 2024 & anno > 2020),]
 Plazos[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Plazos<- Plazos[Plazos$tipo_bien%in%c("1","2","3","4","5","6"), ]
 
@@ -149,7 +149,7 @@ Alcance$codigoProductoRecibido_16<- substr(Alcance$codigoProductoRecibido, 1, 16
 
 
 #limpiando los datos para incluir solo datos desde el 2020, y solo bienes
-Alcance<- Alcance[(anno < 2024 & anno > 2019),]
+Alcance<- Alcance[(anno < 2024 & anno > 2020),]
 Alcance[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Alcance<- Alcance[Alcance$tipo_bien%in%c("1","2","3","4","5","6"),]
 
@@ -198,7 +198,7 @@ LineasOfertadas <- data.table(sqlFetch(SICOP, "dbo.LineasOfertadas",as.is=TRUE))
 Ofertas <- data.table(sqlFetch(SICOP, "dbo.ofertas",as.is=TRUE))
 
 #Ordenamiento de la información de interés
-Costos <- Costos[(anno < 2024 & anno > 2019),]
+Costos <- Costos[(anno < 2024 & anno > 2020),]
 Costos[, tipo_bien := substr(codigoProductoSolicitado, 1, 1)]
 Costos <- Costos[Costos$tipo_bien %in% c("1", "2", "3", "4", "5", "6"),]
 
@@ -640,7 +640,7 @@ Prel_2 <- merge(Prel_1, jerarquiaClasificacionBS[,.(codigoClasificacion, nombreC
 Identificador_Instituciones <- Prel_2[, .(cedula_institucion, nro_acto, nro_oferta, nro_linea, anno, nombreClasificacion, nombreFamilia, nombre_institucion)]
 
 # Filtra Identificador_Instituciones para incluir solo las filas donde el valor de "anno" es menor a 2023 y mayor a 2018.
-Identificador_Instituciones <- Identificador_Instituciones[(anno < 2024 & anno > 2019),]
+Identificador_Instituciones <- Identificador_Instituciones[(anno < 2024 & anno > 2020),]
 
 # Renombra las columnas de Identificador_Instituciones con nuevos nombres.
 colnames(Identificador_Instituciones) <- c("idInstitucion","numeroActo","numeroOferta","idLinea", "anno", "nombreClasificacion", "nombreFamilia","Nombre_Institucion")
