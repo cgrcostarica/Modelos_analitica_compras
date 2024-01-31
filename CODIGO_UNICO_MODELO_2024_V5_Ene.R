@@ -59,6 +59,7 @@ options(scipen = 999)
 SICOP <-odbcConnect("ODBC_CGRSQL")
 #SICOP <-odbcConnect("Conexion_SICOP")
 tablas <- sqlTables(SICOP, tableType = "TABLE")
+print(tablas)
 
 #**************************************INDICADORES DE PLAZO**************************# 
 # INDICADORES ----
@@ -76,7 +77,7 @@ Plazos$cantModif<- as.numeric(Plazos$cantModif)
 
 ###limpiando los datos para incluir solo datos desde el 2020, y solo bienes
 Plazos$codigoProductoAdjudicado_16<- substr(Plazos$codigoProductoAdjudicado, 1, 16)
-Plazos<- Plazos[(anno < 2023 & anno > 2019),]
+Plazos<- Plazos[(anno < 2024 & anno > 2020),]
 Plazos[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Plazos<- Plazos[Plazos$tipo_bien%in%c("1","2","3","4","5","6"), ]
 
@@ -147,8 +148,8 @@ Alcance$codigoProductoContratado_16<- substr(Alcance$codigoProductoContratado, 1
 Alcance$codigoProductoRecibido_16<- substr(Alcance$codigoProductoRecibido, 1, 16)
 
 
-#limpiando los datos para incluir solo datos desde el 2018, y solo bienes
-Alcance<- Alcance[(anno < 2023 & anno > 2019),]
+#limpiando los datos para incluir solo datos desde el 2020, y solo bienes
+Alcance<- Alcance[(anno < 2024 & anno > 2020),]
 Alcance[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Alcance<- Alcance[Alcance$tipo_bien%in%c("1","2","3","4","5","6"),]
 
@@ -194,10 +195,10 @@ print("Calculo de alcance realizado")
 #Carga los datos de interés
 Costos <- data.table(sqlFetch(SICOP, "ds.costos",as.is=TRUE))
 LineasOfertadas <- data.table(sqlFetch(SICOP, "dbo.LineasOfertadas",as.is=TRUE))
-Ofertas <- data.table(sqlFetch(SICOP, "dbo.Ofertas",as.is=TRUE))
+Ofertas <- data.table(sqlFetch(SICOP, "dbo.ofertas",as.is=TRUE))
 
 #Ordenamiento de la información de interés
-Costos <- Costos[(anno < 2023 & anno > 2019),]
+Costos <- Costos[(anno < 2024 & anno > 2020),]
 Costos[, tipo_bien := substr(codigoProductoSolicitado, 1, 1)]
 Costos <- Costos[Costos$tipo_bien %in% c("1", "2", "3", "4", "5", "6"),]
 
