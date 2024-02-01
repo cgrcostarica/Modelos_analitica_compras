@@ -884,7 +884,7 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
 print("Base de datos lista")
 
 # Escribir el contenido de Set_final_V4 en un archivo CSV llamado "Resultados_Finales_Prueba2.csv".
-fwrite(Set_final_V5, "Resultados_Finales_Prueba2.csv", sep = ";", dec = ".")
+fwrite(Set_final_V5, "Resultados_Finales.csv", sep = ";", dec = ".")
 print("CSV exportado")
 
 
