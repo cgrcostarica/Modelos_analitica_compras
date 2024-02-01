@@ -59,7 +59,6 @@ options(scipen = 999)
 SICOP <-odbcConnect("ODBC_CGRSQL")
 #SICOP <-odbcConnect("Conexion_SICOP")
 tablas <- sqlTables(SICOP, tableType = "TABLE")
-print(tablas)
 
 #**************************************INDICADORES DE PLAZO**************************# 
 # INDICADORES ----
@@ -77,7 +76,7 @@ Plazos$cantModif<- as.numeric(Plazos$cantModif)
 
 ###limpiando los datos para incluir solo datos desde el 2020, y solo bienes
 Plazos$codigoProductoAdjudicado_16<- substr(Plazos$codigoProductoAdjudicado, 1, 16)
-Plazos<- Plazos[(anno < 2024 & anno > 2020),]
+Plazos<- Plazos[(anno == 2022),]
 Plazos[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Plazos<- Plazos[Plazos$tipo_bien%in%c("1","2","3","4","5","6"), ]
 
@@ -148,16 +147,15 @@ Alcance$codigoProductoContratado_16<- substr(Alcance$codigoProductoContratado, 1
 Alcance$codigoProductoRecibido_16<- substr(Alcance$codigoProductoRecibido, 1, 16)
 
 
-#limpiando los datos para incluir solo datos desde el 2020, y solo bienes
-Alcance<- Alcance[(anno < 2024 & anno > 2020),]
+#limpiando los datos para incluir solo datos desde el 2018, y solo bienes
+Alcance<- Alcance[(anno == 2022),]
 Alcance[, tipo_bien:= substr(codigoProductoSolicitado,1,1)]
 Alcance<- Alcance[Alcance$tipo_bien%in%c("1","2","3","4","5","6"),]
-
 
 ###************************** Indicador 1**************************###
 ### Indicador Compras Unico ------
 # Cantidad de procedimientos adjudicados del mismo bien en la misma institución durante el año calendario
-Alcance.1 <- unique(x = Alcance[,c(4,5,6,22), with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16","idProcedimiento"))
+Alcance.1 <- unique(x = Alcance[,c("anno", "idInstitucion","idProcedimiento","codigoProductoAdjudicado_16"), with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16","idProcedimiento"))
 Alcance.1[, Compras_Unico := .N, by = .(anno, idInstitucion,codigoProductoAdjudicado_16)][order(-Compras_Unico)]
 
 
@@ -174,7 +172,7 @@ Alcance[, Raz_solicitada_contratada := ifelse(is.infinite(Raz_solicitada_contrat
 ###************************** Manteniendo solamente las variables de identificacion y los indicadores**************************###
 Alcance.2 <- unique(x = Alcance.1, by = c("anno", "idInstitucion","codigoProductoAdjudicado_16"))
 
-Alcance.3 <- merge(x = Alcance, y = Alcance.2[,-3,with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16"),all.x = TRUE)
+Alcance.3 <- merge(x = Alcance, y = Alcance.2[,-c("idProcedimiento"),with = FALSE], by = c("anno", "idInstitucion","codigoProductoAdjudicado_16"),all.x = TRUE)
 
 Indicadores_Alcance <- Alcance.3[,.(numeroActo,numeroOferta,idLinea,
                                     Compras_Unico, 
@@ -194,11 +192,13 @@ print("Calculo de alcance realizado")
 ## Costo -------------
 #Carga los datos de interés
 Costos <- data.table(sqlFetch(SICOP, "ds.costos",as.is=TRUE))
-LineasOfertadas <- data.table(sqlFetch(SICOP, "dbo.LineasOfertadas",as.is=TRUE))
-Ofertas <- data.table(sqlFetch(SICOP, "dbo.ofertas",as.is=TRUE))
+Costos[, .N, keyby = .(anno)][, Porcentaje := (N / sum(N)) * 100][]
+
+LineasOfertadas <- data.table(sqlFetch(SICOP, "dbo.lineasofertadas",as.is=TRUE))
+Ofertas <- data.table(sqlFetch(SICOP, "dbo.Ofertas",as.is=TRUE))
 
 #Ordenamiento de la información de interés
-Costos <- Costos[(anno < 2024 & anno > 2020),]
+Costos <- Costos[(anno == 2022),]
 Costos[, tipo_bien := substr(codigoProductoSolicitado, 1, 1)]
 Costos <- Costos[Costos$tipo_bien %in% c("1", "2", "3", "4", "5", "6"),]
 
@@ -281,7 +281,7 @@ Menor.Desv_Baja <- Costos.1[Desv_Mas_Baja < 1][]
 ###************************** Indicador 2**************************###
 ### Preparación de los datos Ind. 1-----           
 # Grado de desviación del adjudicado vs el contratado.
-contrataciones <- data.table(sqlFetch(SICOP, "dbo.LineasContratadas", as.is=TRUE))
+contrataciones <- data.table(sqlFetch(SICOP, "dbo.lineascontratadas", as.is=TRUE))
 
 # Se calcula el precio unitario contratado en colones, convirtiendo los valores según la moneda y tipo de cambio
 contrataciones[, precio_unitario_contratado_colones := ifelse(tipo_moneda == "CRC",
@@ -356,7 +356,18 @@ Set_final <- Reduce(function(...) merge(..., by = c("numeroActo","numeroOferta",
 
 # Eliminando los valores de NA 
 Set_Modelo_sin_NA <- Set_final[na.omit(Set_final)]
-Set_Modelo_sin_NA <- Set_Modelo_sin_NA[,c(1:5, 8:9, 13:15)]
+#Set_Modelo_sin_NA <- Set_Modelo_sin_NA[,c(1:5, 8:9, 13:15)]
+
+Set_Modelo_sin_NA <- Set_Modelo_sin_NA[, c("numeroActo", "numeroOferta", "idLinea",
+                                           "Compras_Unico", "Raz_solicitada_contratada",
+                                           "desv_adj_vs_oferta_mas_baja", "desv_cont_vs_adj",
+                                           #                                           "Prec_Unit_Adj_Col", "precioUnitarioMenorColones",
+                                           "Desv_inicioadju", "Desv_contpriadj", "CantModf_Plazo"
+                                           #                                           "difIniAdj", "Prom_inicioadju_16", "difAdjContPri",
+                                           #                                           "Prom_contpriradj_16"
+)]
+
+
 
 #### LIMPIEZA DE DATOS
 # Lista de archivos a conservar
@@ -625,7 +636,7 @@ rm(list = objetos_a_eliminar)
 # OTRA INFORMACIÓN -----------
 
 # Carga los datos de la tabla "dbo.Instituciones" desde la base de datos SICOP y los almacena en el objeto "Instituciones"
-Instituciones <- data.table(sqlFetch(SICOP, "dbo.Instituciones", as.is = TRUE))
+Instituciones <- data.table(sqlFetch(SICOP, "dbo.instituciones", as.is = TRUE))
 lineasadjudicadas <- data.table(sqlFetch(SICOP, "dbo.lineasadjudicadas", as.is = TRUE))
 procedimientos <- data.table(sqlFetch(SICOP, "dbo.procedimientos", as.is = TRUE))
 jerarquiaClasificacionBS <- data.table(sqlFetch(SICOP, "dbo.jerarquiaClasificacionBS", as.is = TRUE))
@@ -640,7 +651,7 @@ Prel_2 <- merge(Prel_1, jerarquiaClasificacionBS[,.(codigoClasificacion, nombreC
 Identificador_Instituciones <- Prel_2[, .(cedula_institucion, nro_acto, nro_oferta, nro_linea, anno, nombreClasificacion, nombreFamilia, nombre_institucion)]
 
 # Filtra Identificador_Instituciones para incluir solo las filas donde el valor de "anno" es menor a 2023 y mayor a 2018.
-Identificador_Instituciones <- Identificador_Instituciones[(anno < 2024 & anno > 2020),]
+Identificador_Instituciones <- Identificador_Instituciones[(anno == 2022),]
 
 # Renombra las columnas de Identificador_Instituciones con nuevos nombres.
 colnames(Identificador_Instituciones) <- c("idInstitucion","numeroActo","numeroOferta","idLinea", "anno", "nombreClasificacion", "nombreFamilia","Nombre_Institucion")
@@ -785,6 +796,7 @@ Set_final[, Nota_final := Escala_Nota_ISO*0.25+Escala_Nota_KMEANS*0.25+Escala_No
 # Asignar el precio unitario contratado en colones basado en la moneda contratada.
 costos <- data.table(sqlFetch(SICOP, "ds.costosCont",as.is=TRUE))
 
+
 costos[, precio_unitario_contratado_colones := ifelse(tipoMonedaContratada == "CRC", as.numeric(precioUnitarioContratado), as.numeric(precioUnitarioContratado) * as.numeric(tipoCambioCrcContratado) * (1/as.numeric(tipoCambioDolarContratado)))]
 costos[, Monto_linea_colones := as.numeric(cantidadContratada) * precio_unitario_contratado_colones - as.numeric(descuentoContratado) + as.numeric(ivaContratado) + as.numeric(otrosImpuestosContratado) + as.numeric(acarreosContratado)]
 
@@ -884,7 +896,7 @@ colnames(Set_final_V5) <- c("numeroActo", "idLinea", "numeroOferta", "numeroProc
 print("Base de datos lista")
 
 # Escribir el contenido de Set_final_V4 en un archivo CSV llamado "Resultados_Finales_Prueba2.csv".
-fwrite(Set_final_V5, "Resultados_Finales.csv", sep = ";", dec = ".")
+fwrite(Set_final_V5, "Resultados_Finales_2024.csv", sep = ";", dec = ".")
 print("CSV exportado")
 
 
